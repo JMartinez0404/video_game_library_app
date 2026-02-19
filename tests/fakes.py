@@ -9,7 +9,7 @@ class FakeGameRepository(GameRepository):
     def add(self, video_game: VideoGame) -> VideoGame:
         video_game.id = self._id
         self._id += 1
-        self.games.append(video_game)
+        self.video_games.append(video_game)
         return video_game
 
     def list(self):

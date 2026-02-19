@@ -20,18 +20,23 @@ def test_add_video_game():
         release_date="2022-02-25"
     )
 
-    saved = service.add_game(video_game)
+    saved = service.add_video_game(video_game)
 
     assert saved.id == 1
+    assert saved.communal_rating == 9.5
+    assert saved.personal_rating == 9
+    assert saved.play_state == PlayState.BEATEN
+    assert saved.platform == Platform.PS5
+    assert saved.image_url == "img.jpg"
     assert saved.title == "Elden Ring"
-    assert len(repo.games) == 1
+    assert len(repo.video_games) == 1
 
 
 def test_get_library():
     repo = FakeGameRepository()
     service = GameService(repo)
 
-    service.add_game(VideoGame(None, "Game1", 8.0, 7.5, PlayState.STARTED, Platform.SWITCH, "img", "2020"))
+    service.add_video_game(VideoGame(None, "Game1", 8.0, 7.5, PlayState.STARTED, Platform.SWITCH, "img", "2020"))
 
     video_games = service.get_library()
 
