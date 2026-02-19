@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
-from domain.entities import VideoGame
+from domain.entities import Platform, PlayState, VideoGame
 from domain.repositories import GameRepository
-from infrastructure.database.models import GameModel
+from infrastructure.databases.models import GameModel
 
 class SQLAlchemyGameRepository(GameRepository):
 
@@ -13,8 +13,8 @@ class SQLAlchemyGameRepository(GameRepository):
             title=video_game.title,
             communal_rating=video_game.communal_rating,
             personal_rating=video_game.personal_rating,
-            play_state=video_game.play_state,
-            platform=video_game.platform,
+            play_state=video_game.play_state.name,
+            platform=video_game.platform.name,
             image_url=video_game.image_url,
             release_date=video_game.release_date
         )
@@ -42,8 +42,8 @@ class SQLAlchemyGameRepository(GameRepository):
                 title=g.title,
                 communal_rating=g.communal_rating,
                 personal_rating=g.personal_rating,
-                play_state=g.play_state,
-                platform=g.platform,
+                play_state=PlayState[g.play_state],
+                platform=Platform[g.platform],
                 image_url=g.image_url,
                 release_date=g.release_date
             )
