@@ -32,3 +32,7 @@ def list_games(db: Session = Depends(get_db)):
     service = GameService(repository)
 
     return service.get_library()
+
+#TODO: Add method to remove games from database
+
+#TODO: Add method to remove all games from database
