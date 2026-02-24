@@ -12,3 +12,6 @@ class GameService:
 
     def get_library(self) -> List[VideoGame]:
         return self.repository.list()
+    
+    def remove_all_games(self) -> None:
+        return self.repository.remove_all()

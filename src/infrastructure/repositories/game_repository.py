@@ -49,3 +49,7 @@ class SQLAlchemyGameRepository(GameRepository):
             )
             for g in video_games
         ]
+    
+    def remove_all(self) -> None:
+        self.db.query(GameModel).delete(synchronize_session=False)
+        self.db.commit()
