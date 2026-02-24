@@ -13,7 +13,7 @@ class GameRepository(ABC):
         pass
 
     @abstractmethod
-    def delete_all(self, video_game: VideoGame) -> None:
+    def delete_all(self) -> None:
         pass
 
     @abstractmethod
