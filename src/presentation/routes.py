@@ -2,11 +2,14 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from infrastructure.databases.sessions import get_db
+from infrastructure.external_apis.rawg_client import RawgClient
 from infrastructure.repositories.game_repository import SQLAlchemyGameRepository
 from application.game_use_cases import GameService
 from domain.entities import VideoGame
 from presentation.schemas import VideoGameCreate, VideoGameResponse
 
+
+RAWG_API_KEY = "ca49543276b64af4b3af67f44b3944eb"
 
 router = APIRouter()
 
@@ -48,3 +51,12 @@ def delete_games(game_name: str, db: Session = Depends(get_db)):
     service = GameService(repository)
 
     return service.delete_video_game(game_name)
+
+@router.get("/external/video_games")
+def search_external_games(query: str, db: Session = Depends(get_db)):
+    repository = SQLAlchemyGameRepository(db)
+    rawg_client = RawgClient(RAWG_API_KEY)
+    service = GameService(repository, rawg_client)
+
+    return service.search_external_games(query)
+

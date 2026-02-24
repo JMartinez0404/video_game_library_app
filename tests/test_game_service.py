@@ -1,9 +1,6 @@
-# tests/test_game_service.py
-
 from application.game_use_cases import GameService
 from domain.entities import PlayState, Platform, VideoGame
-from tests.fakes import FakeGameRepository
-
+from tests.fakes import FakeGameRepository, FakeRawgClient
 
 def test_add_video_game():
     repo = FakeGameRepository()
@@ -31,7 +28,6 @@ def test_add_video_game():
     assert saved.title == "Elden Ring"
     assert len(repo.video_games) == 1
 
-
 def test_get_library():
     repo = FakeGameRepository()
     service = GameService(repo)
@@ -41,3 +37,51 @@ def test_get_library():
     video_games = service.get_library()
 
     assert len(video_games) == 1
+
+def test_delete_all_video_games():
+    repo = FakeGameRepository()
+    service = GameService(repo)
+    
+    service.delete_all_video_games()
+
+    assert service.get_library() == []
+
+def test_delete_video_game():
+    repo = FakeGameRepository()
+    service = GameService(repo)
+
+    game_title = "Elden Ring"
+
+    video_game = VideoGame(
+        id=None,
+        title=game_title,
+        communal_rating=9.5,
+        personal_rating=9,
+        play_state=PlayState.BEATEN,
+        platform=Platform.PS5,
+        image_url="img.jpg",
+        release_date="2022-02-25"
+    )
+
+    service.add_video_game(video_game)
+    
+    deleted = service.delete_video_game(game_title)
+
+    assert deleted.id == 1
+    assert deleted.communal_rating == 9.5
+    assert deleted.personal_rating == 9
+    assert deleted.play_state == PlayState.BEATEN
+    assert deleted.platform == Platform.PS5
+    assert deleted.image_url == "img.jpg"
+    assert deleted.title == "Elden Ring"
+    assert len(repo.video_games) == 0
+
+def test_search_external_games():
+    fake_client = FakeRawgClient()
+    service = GameService(repository=None, rawg_client=fake_client)
+
+    results = service.search_external_games("zelda")
+
+    assert len(results) == 1
+    assert results[0]["title"] == "Zelda Test"
+    assert results[0]["communal_rating"] == 4.5
