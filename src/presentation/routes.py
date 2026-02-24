@@ -33,14 +33,18 @@ def list_games(db: Session = Depends(get_db)):
 
     return service.get_library()
 
-#TODO: Add method to remove games from database
-
-#TODO: Add method to remove all games from database
 @router.delete("/video_games")
 def delete_all_games(db: Session = Depends(get_db)):
     repository = SQLAlchemyGameRepository(db)
     service = GameService(repository)
 
-    service.remove_all_games()
+    service.delete_all_video_games()
 
     return {"message": "All video games removed"}
+
+@router.delete("/video_games/{game_name}")
+def delete_games(game_name: str, db: Session = Depends(get_db)):
+    repository = SQLAlchemyGameRepository(db)
+    service = GameService(repository)
+
+    return service.delete_video_game(game_name)

@@ -1,3 +1,4 @@
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 from domain.entities import Platform, PlayState, VideoGame
 from domain.repositories import GameRepository
@@ -50,6 +51,13 @@ class SQLAlchemyGameRepository(GameRepository):
             for g in video_games
         ]
     
-    def remove_all(self) -> None:
+    def delete_all(self) -> None:
         self.db.query(GameModel).delete(synchronize_session=False)
         self.db.commit()
+    
+    def delete(self, game_name: str) -> VideoGame:
+        game_to_delete = self.db.execute(select(GameModel).filter_by(title=game_name)).scalar_one()
+        self.db.delete(game_to_delete)
+        self.db.commit()
+
+        return game_to_delete
