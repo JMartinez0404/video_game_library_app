@@ -95,7 +95,7 @@ def test_get_external_game_by_id():
     assert result.id == 1
     assert result.communal_rating == 4.5
 
-def test_import_external_game():
+def test_import_external_game_by_id():
     fake_repo = FakeGameRepository()
     fake_client = FakeRawgClient()
 
