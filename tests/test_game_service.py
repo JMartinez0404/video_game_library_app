@@ -94,3 +94,15 @@ def test_get_external_game_by_id():
 
     assert result.id == 1
     assert result.communal_rating == 4.5
+
+def test_import_external_game():
+    fake_repo = FakeGameRepository()
+    fake_client = FakeRawgClient()
+
+    service = GameService(repository=fake_repo, rawg_client=fake_client)
+
+    result = service.import_external_game_by_id(1)
+
+    assert result.id == 1
+    assert result.title == "Zelda Test"
+    assert result.personal_rating == 0.0

@@ -1,5 +1,5 @@
 from typing import List
-from domain.entities import VideoGame
+from domain.entities import PlayState, Platform, VideoGame
 from domain.repositories import GameRepository
 from infrastructure.external_apis.dtos import ExternalGameDTO
 from infrastructure.external_apis.rawg_client import RawgClient
@@ -60,3 +60,21 @@ class GameService:
             release_date=data["released"],
         )
 
+    def import_external_game_by_id(self, game_id: int) -> VideoGame:
+        if not self.rawg_client:
+            raise ValueError("RAWG client not configured")
+
+        data = self.rawg_client.get_game_by_id(game_id)
+
+        video_game = VideoGame(
+            id=None,
+            title=data["name"],
+            communal_rating=data.get("rating", 0.0),
+            personal_rating=0.0,
+            play_state=PlayState.NOT_STARTED,
+            platform=Platform.PS1,
+            image_url=data.get("background_image", ""),
+            release_date=data.get("released", ""),
+        )
+
+        return self.repository.add(video_game)

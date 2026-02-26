@@ -68,3 +68,14 @@ def get_external_game_by_id(game_id: int, db: Session = Depends(get_db)):
     service = GameService(repository, rawg_client)
 
     return service.search_external_game_by_id(game_id)
+
+@router.post(
+    "/external/video_games/{game_id}/import",
+    response_model=VideoGameResponse
+)
+def import_external_game_by_id(game_id: int, db: Session = Depends(get_db)):
+    repository = SQLAlchemyGameRepository(db)
+    rawg_client = RawgClient(RAWG_API_KEY)
+    service = GameService(repository, rawg_client)
+
+    return service.import_external_game_by_id(game_id)
