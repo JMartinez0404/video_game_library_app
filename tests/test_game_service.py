@@ -76,12 +76,21 @@ def test_delete_video_game():
     assert deleted.title == "Elden Ring"
     assert len(repo.video_games) == 0
 
-def test_search_external_games():
+def test_search_external_games_by_name():
     fake_client = FakeRawgClient()
     service = GameService(repository=None, rawg_client=fake_client)
 
-    results = service.search_external_games("zelda")
+    results = service.search_external_games_by_name("zelda")
 
     assert len(results) == 1
     assert results[0]["title"] == "Zelda Test"
     assert results[0]["communal_rating"] == 4.5
+
+def test_get_external_game_by_id():
+    fake_client = FakeRawgClient()
+    service = GameService(repository=None, rawg_client=fake_client)
+
+    result = service.search_external_game_by_id(1)
+
+    assert result.id == 1
+    assert result.communal_rating == 4.5

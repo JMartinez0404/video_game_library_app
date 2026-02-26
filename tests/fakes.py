@@ -24,14 +24,26 @@ class FakeGameRepository(GameRepository):
                 return self.video_games.pop(index)
 
 class FakeRawgClient:
-    def search_games(self, query: str):
+    def search_games_by_name(self, game_name: str):
         return {
             "results": [
                 {
+                    "id": "1",
                     "name": "Zelda Test",
                     "released": "2020-01-01",
+                    "platforms": "PS1",
                     "rating": 4.5,
                     "background_image": "http://image.url"
                 }
             ]
+        }
+    
+    def get_game_by_id(self, game_id: str):
+        return {
+            "id": 1,
+            "name": "Zelda Test",
+            "released": "2020-01-01",
+            "platforms": "PS1",
+            "rating": 4.5,
+            "background_image": "http://image.url"
         }

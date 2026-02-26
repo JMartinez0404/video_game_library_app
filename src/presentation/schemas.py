@@ -1,5 +1,4 @@
 from pydantic import BaseModel, field_validator, HttpUrl
-from typing import Optional
 from domain.entities import PlayState, Platform
 
 
