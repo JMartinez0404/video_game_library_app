@@ -1,3 +1,4 @@
+from application.external_game_service import ExternalGameService
 from application.game_use_cases import GameService
 from domain.entities import PlayState, Platform, VideoGame
 from tests.fakes import FakeGameRepository, FakeRawgClient
@@ -78,19 +79,19 @@ def test_delete_video_game():
 
 def test_search_external_games_by_name():
     fake_client = FakeRawgClient()
-    service = GameService(repository=None, rawg_client=fake_client)
+    service = ExternalGameService(repository=None, rawg_client=fake_client)
 
-    results = service.search_external_games_by_name("zelda")
+    results = service.search_by_name("zelda")
 
     assert len(results) == 1
-    assert results[0]["title"] == "Zelda Test"
-    assert results[0]["communal_rating"] == 4.5
+    assert results[0].title == "Zelda Test"
+    assert results[0].communal_rating == 4.5
 
 def test_get_external_game_by_id():
     fake_client = FakeRawgClient()
-    service = GameService(repository=None, rawg_client=fake_client)
+    service = ExternalGameService(repository=None, rawg_client=fake_client)
 
-    result = service.search_external_game_by_id(1)
+    result = service.get_by_id(1)
 
     assert result.id == 1
     assert result.communal_rating == 4.5
@@ -99,9 +100,9 @@ def test_import_external_game_by_id():
     fake_repo = FakeGameRepository()
     fake_client = FakeRawgClient()
 
-    service = GameService(repository=fake_repo, rawg_client=fake_client)
+    service = ExternalGameService(repository=fake_repo, rawg_client=fake_client)
 
-    result = service.import_external_game_by_id(1)
+    result = service.import_game_by_id(1)
 
     assert result.id == 1
     assert result.title == "Zelda Test"

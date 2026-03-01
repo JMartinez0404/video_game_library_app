@@ -5,6 +5,7 @@ from infrastructure.databases.sessions import get_db
 from infrastructure.external_apis.dtos import ExternalGameDTO
 from infrastructure.external_apis.rawg_client import RawgClient
 from infrastructure.repositories.game_repository import SQLAlchemyGameRepository
+from application.external_game_service import ExternalGameService
 from application.game_use_cases import GameService
 from domain.entities import VideoGame
 from presentation.schemas import VideoGameCreate, VideoGameResponse
@@ -57,25 +58,25 @@ def delete_games(game_name: str, db: Session = Depends(get_db)):
 def search_external_games_by_name(game_name: str, db: Session = Depends(get_db)):
     repository = SQLAlchemyGameRepository(db)
     rawg_client = RawgClient(RAWG_API_KEY)
-    service = GameService(repository, rawg_client)
+    service = ExternalGameService(repository, rawg_client)
 
-    return service.search_external_games_by_name(game_name)
+    return service.search_by_name(game_name)
 
 @router.get("/external/video_games/{game_id}", response_model=ExternalGameDTO)
 def get_external_game_by_id(game_id: int, db: Session = Depends(get_db)):
     repository = SQLAlchemyGameRepository(db)
     rawg_client = RawgClient(RAWG_API_KEY)
-    service = GameService(repository, rawg_client)
+    service = ExternalGameService(repository, rawg_client)
 
-    return service.search_external_game_by_id(game_id)
+    return service.get_by_id(game_id)
 
 @router.post(
     "/external/video_games/{game_id}/import",
     response_model=VideoGameResponse
 )
-def import_external_game_by_id(game_id: int, db: Session = Depends(get_db)):
+def import_external_game(game_id: int, db: Session = Depends(get_db)):
     repository = SQLAlchemyGameRepository(db)
     rawg_client = RawgClient(RAWG_API_KEY)
-    service = GameService(repository, rawg_client)
+    service = ExternalGameService(repository, rawg_client)
 
-    return service.import_external_game_by_id(game_id)
+    return service.import_game_by_id(game_id)
