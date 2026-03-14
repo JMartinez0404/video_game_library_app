@@ -8,6 +8,7 @@ Guidelines:
 - Keep items short and action-oriented.
 
 Backlog:
+- ~~Backfill RAWG slugs for existing library entries.~~
 - ~~Link game cards to RAWG game pages in both search and library views.~~
 - ~~Swap "Add to Library" for "Remove from Library" when viewing library entries.~~
 - ~~Resolve duplicate POST `/external/video_games/{game_id}/import` route and remove dead `import_game` call.~~

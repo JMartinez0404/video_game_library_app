@@ -173,3 +173,90 @@ class ExternalGameService:
             names.append(rawg_platforms.lower())
 
         return names
+
+    def _normalize_title(self, title: str) -> str:
+        return (
+            title.lower()
+            .replace("’", "'")
+            .replace("'", "")
+            .replace("-", " ")
+            .replace(":", " ")
+            .replace(".", " ")
+            .replace(",", " ")
+            .replace("!", " ")
+            .replace("?", " ")
+            .replace("(", " ")
+            .replace(")", " ")
+            .replace("[", " ")
+            .replace("]", " ")
+            .replace("{", " ")
+            .replace("}", " ")
+            .replace("_", " ")
+            .replace("/", " ")
+            .replace("\\", " ")
+            .replace("+", " ")
+            .replace("&", " ")
+            .replace("  ", " ")
+            .strip()
+            .replace(" ", "")
+        )
+
+    def backfill_rawg_slugs(self) -> dict:
+        games = self.repository.list()
+        updated = 0
+        skipped = 0
+        failed = 0
+
+        for game in games:
+            if game.rawg_slug:
+                skipped += 1
+                continue
+
+            try:
+                data = self.rawg_client.search_games_by_name(
+                    game.title,
+                    page=1,
+                    page_size=20,
+                )
+            except requests.RequestException:
+                failed += 1
+                continue
+
+            results = data.get("results", [])
+            release_date = game.release_date[:10] if game.release_date else None
+            match = None
+
+            if release_date:
+                match = next(
+                    (
+                        result
+                        for result in results
+                        if result.get("released", "")[:10] == release_date
+                    ),
+                    None,
+                )
+
+            if match is None:
+                normalized_title = self._normalize_title(game.title)
+                match = next(
+                    (
+                        result
+                        for result in results
+                        if self._normalize_title(result.get("name", ""))
+                        == normalized_title
+                    ),
+                    None,
+                )
+
+            if match and match.get("slug"):
+                self.repository.update_rawg_slug(game.id, match["slug"])
+                updated += 1
+            else:
+                failed += 1
+
+        return {
+            "updated": updated,
+            "skipped": skipped,
+            "failed": failed,
+            "total": len(games),
+        }

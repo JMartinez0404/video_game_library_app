@@ -48,21 +48,13 @@ export default function GameCard({
       }}
     >
       <div className="relative h-20 w-14 flex-shrink-0 overflow-hidden rounded-lg bg-gradient-to-br from-zinc-200 to-zinc-100 dark:from-zinc-800 dark:to-zinc-700">
-        {rawgUrl ? (
-          <a href={rawgUrl} target="_blank" rel="noreferrer">
-            {imageUrl ? (
-              <img
-                src={imageUrl}
-                alt={`${title} cover`}
-                className="h-full w-full object-cover"
-                loading="lazy"
-              />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center text-xs font-medium text-zinc-500 dark:text-zinc-300">
-                No Image
-              </div>
-            )}
-          </a>
+        {imageUrl ? (
+          <img
+            src={imageUrl}
+            alt={`${title} cover`}
+            className="h-full w-full object-cover"
+            loading="lazy"
+          />
         ) : (
           <div className="flex h-full w-full items-center justify-center text-xs font-medium text-zinc-500 dark:text-zinc-300">
             No Image

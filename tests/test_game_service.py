@@ -171,3 +171,56 @@ def test_import_external_game_maps_platform():
     result = service.import_game_by_id(2)
 
     assert result.platform == Platform.SWITCH
+
+def test_backfill_rawg_slugs():
+    class BackfillRawgClient:
+        def search_games_by_name(
+            self,
+            game_name: str,
+            page: int = 1,
+            page_size: int = 10,
+        ):
+            return {
+                "results": [
+                    {
+                        "id": 10,
+                        "name": game_name,
+                        "slug": "matched-slug",
+                        "released": "2003-11-14",
+                    }
+                ]
+            }
+
+    repo = FakeGameRepository()
+    repo.add(
+        VideoGame(
+            id=None,
+            title="Pokemon Colosseum",
+            communal_rating=8.0,
+            personal_rating=7.5,
+            play_state=PlayState.NOT_STARTED,
+            platform=Platform.PS2,
+            image_url="img",
+            release_date="2003-11-14",
+        )
+    )
+    repo.add(
+        VideoGame(
+            id=None,
+            title="Zelda Test",
+            communal_rating=9.0,
+            personal_rating=9.0,
+            play_state=PlayState.BEATEN,
+            platform=Platform.SWITCH,
+            image_url="img",
+            release_date="2020-01-01",
+            rawg_slug="zelda-test",
+        )
+    )
+
+    service = ExternalGameService(repository=repo, rawg_client=BackfillRawgClient())
+    result = service.backfill_rawg_slugs()
+
+    assert result["updated"] == 1
+    assert result["skipped"] == 1
+    assert repo.video_games[0].rawg_slug == "matched-slug"

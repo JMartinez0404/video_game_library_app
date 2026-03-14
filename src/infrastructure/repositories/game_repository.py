@@ -92,3 +92,20 @@ class SQLAlchemyGameRepository(GameRepository):
             release_date=game_to_delete.release_date,
             rawg_slug=game_to_delete.rawg_slug,
         )
+
+    def update_rawg_slug(self, game_id: int, rawg_slug: str) -> VideoGame:
+        game_to_update = self.db.execute(select(GameModel).filter_by(id=game_id)).scalar_one()
+        game_to_update.rawg_slug = rawg_slug
+        self.db.commit()
+
+        return VideoGame(
+            id=game_to_update.id,
+            title=game_to_update.title,
+            communal_rating=game_to_update.communal_rating,
+            personal_rating=game_to_update.personal_rating,
+            play_state=PlayState[game_to_update.play_state],
+            platform=Platform[game_to_update.platform],
+            image_url=game_to_update.image_url,
+            release_date=game_to_update.release_date,
+            rawg_slug=game_to_update.rawg_slug,
+        )

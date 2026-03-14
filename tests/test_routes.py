@@ -104,3 +104,17 @@ def test_external_import_route(monkeypatch):
 
     assert response.status_code == 200
     assert response.json()["title"] == "Imported Game"
+
+def test_external_backfill_route(monkeypatch):
+    def fake_backfill(self):
+        return {"updated": 2, "skipped": 1, "failed": 0, "total": 3}
+
+    monkeypatch.setattr(
+        "application.external_game_service.ExternalGameService.backfill_rawg_slugs",
+        fake_backfill
+    )
+
+    response = client.post("/external/video_games/backfill_slugs")
+
+    assert response.status_code == 200
+    assert response.json()["updated"] == 2

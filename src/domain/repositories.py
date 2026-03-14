@@ -25,3 +25,7 @@ class GameRepository(ABC):
     @abstractmethod
     def delete(self, game_name: str) -> VideoGame:
         pass
+
+    @abstractmethod
+    def update_rawg_slug(self, game_id: int, rawg_slug: str) -> VideoGame:
+        pass

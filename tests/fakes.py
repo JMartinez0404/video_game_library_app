@@ -41,6 +41,13 @@ class FakeGameRepository(GameRepository):
             if game_name == video_game.title:
                 return self.video_games.pop(index)
 
+    def update_rawg_slug(self, game_id: int, rawg_slug: str) -> VideoGame:
+        for video_game in self.video_games:
+            if video_game.id == game_id:
+                video_game.rawg_slug = rawg_slug
+                return video_game
+        raise ValueError("Game not found")
+
 class FakeRawgClient:
     def search_games_by_name(
         self,

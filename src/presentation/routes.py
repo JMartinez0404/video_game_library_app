@@ -134,3 +134,11 @@ def import_external_game(game_id: int, db: Session = Depends(get_db)):
         return service.import_game_by_id(game_id)
     except ExternalApiError as exc:
         raise HTTPException(status_code=502, detail=exc.message) from exc
+
+@router.post("/external/video_games/backfill_slugs")
+def backfill_external_game_slugs(db: Session = Depends(get_db)):
+    repository = SQLAlchemyGameRepository(db)
+    rawg_client = RawgClient(RAWG_API_KEY)
+    service = ExternalGameService(repository, rawg_client)
+
+    return service.backfill_rawg_slugs()
