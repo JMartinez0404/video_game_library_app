@@ -3,6 +3,7 @@
 import {
   getLibraryWithQuery,
   importGame,
+  backfillRawgSlugs,
   removeGame,
   searchExternalGames,
   type LibraryQuery,
@@ -24,6 +25,8 @@ export default function Home() {
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [searchError, setSearchError] = useState<string | null>(null)
   const [libraryError, setLibraryError] = useState<string | null>(null)
+  const [isBackfilling, setIsBackfilling] = useState(false)
+  const [backfillMessage, setBackfillMessage] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
   const [searchPage, setSearchPage] = useState(1)
   const [searchTotal, setSearchTotal] = useState(0)
@@ -39,6 +42,7 @@ export default function Home() {
   async function loadLibrary(nextFilters: LibraryQuery) {
     setIsLoadingLibrary(true)
     setLibraryError(null)
+    setBackfillMessage(null)
     try {
       const data = await getLibraryWithQuery(nextFilters)
       setGames(data)
@@ -86,6 +90,26 @@ export default function Home() {
   async function handleRemove(title: string) {
     await removeGame(title)
     await loadLibrary(filters)
+  }
+
+  async function handleBackfill() {
+    setIsBackfilling(true)
+    setBackfillMessage(null)
+    try {
+      const result = await backfillRawgSlugs()
+      setBackfillMessage(
+        `Backfill complete: ${result.updated} updated, ${result.skipped} skipped, ${result.failed} failed.`,
+      )
+      await loadLibrary(filters)
+    } catch (error) {
+      setBackfillMessage(
+        error instanceof Error
+          ? error.message
+          : "Backfill failed. Try again.",
+      )
+    } finally {
+      setIsBackfilling(false)
+    }
   }
 
   async function handleLoadMore() {
@@ -290,6 +314,21 @@ export default function Home() {
               {isLoadingLibrary && (
                 <p className="text-sm text-zinc-500">Loading library...</p>
               )}
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleBackfill}
+                  disabled={isBackfilling}
+                  className="rounded-full border border-zinc-300 px-3 py-1.5 text-xs font-semibold text-zinc-700 transition hover:border-zinc-400 hover:text-zinc-900 disabled:cursor-not-allowed disabled:opacity-60 dark:border-zinc-700 dark:text-zinc-200 dark:hover:border-zinc-500 dark:hover:text-white"
+                >
+                  {isBackfilling ? "Backfilling..." : "Backfill RAWG Links"}
+                </button>
+                {backfillMessage && (
+                  <span className="text-xs text-zinc-500">
+                    {backfillMessage}
+                  </span>
+                )}
+              </div>
             </div>
           ) : (
             <button

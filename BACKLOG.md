@@ -8,6 +8,7 @@ Guidelines:
 - Keep items short and action-oriented.
 
 Backlog:
+- ~~Add backfill RAWG slugs button to the frontend.~~
 - ~~Backfill RAWG slugs for existing library entries.~~
 - ~~Link game cards to RAWG game pages in both search and library views.~~
 - ~~Swap "Add to Library" for "Remove from Library" when viewing library entries.~~
@@ -20,7 +21,7 @@ Backlog:
 - ~~Display cover images and improve `GameCard` layout.~~
 - ~~Add library filters and sorting in the backend and frontend.~~
 - ~~Add pagination for RAWG search results.~~
-- Add rate limiting for external API calls.
+- ~~Add rate limiting for external API calls.~~
 - Add authentication for user libraries.
 - Add tests for `ExternalGameService` with a fake RAWG client.
 - Expand API route tests for external game endpoints.
