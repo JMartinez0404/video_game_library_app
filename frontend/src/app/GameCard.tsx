@@ -5,6 +5,7 @@ type GameCardProps = {
   imageUrl?: string | null
   releaseDate?: string | null
   rawgUrl?: string | null
+  onResolveRawgUrl?: () => Promise<string | null>
   onImport?: (id: number) => void
   onRemove?: (title: string) => void
 }
@@ -16,6 +17,7 @@ export default function GameCard({
   imageUrl,
   releaseDate,
   rawgUrl,
+  onResolveRawgUrl,
   onImport,
   onRemove,
 }: GameCardProps) {
@@ -23,23 +25,25 @@ export default function GameCard({
     rating === null || rating === undefined ? "N/A" : rating.toFixed(1)
   const showRemove = Boolean(onRemove)
   const showImport = Boolean(onImport) && !showRemove
-  const handleOpen = () => {
-    if (!rawgUrl) {
+  const handleOpen = async () => {
+    const url = rawgUrl ?? (onResolveRawgUrl ? await onResolveRawgUrl() : null)
+    if (!url) {
       return
     }
-    window.open(rawgUrl, "_blank", "noopener,noreferrer")
+    window.open(url, "_blank", "noopener,noreferrer")
   }
+  const isClickable = Boolean(rawgUrl || onResolveRawgUrl)
 
   return (
     <div
-      className={`flex w-full items-center gap-4 rounded-2xl border border-zinc-200 bg-gradient-to-br from-white via-zinc-50 to-zinc-100 p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-zinc-800 dark:from-zinc-950 dark:via-zinc-950 dark:to-zinc-900 ${rawgUrl ? "cursor-pointer" : ""}`}
-      onClick={rawgUrl ? handleOpen : undefined}
-      role={rawgUrl ? "link" : undefined}
-      tabIndex={rawgUrl ? 0 : -1}
+      className={`flex w-full items-center gap-4 rounded-2xl border border-zinc-200 bg-gradient-to-br from-white via-zinc-50 to-zinc-100 p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-zinc-800 dark:from-zinc-950 dark:via-zinc-950 dark:to-zinc-900 ${isClickable ? "cursor-pointer" : ""}`}
+      onClick={isClickable ? () => void handleOpen() : undefined}
+      role={isClickable ? "link" : undefined}
+      tabIndex={isClickable ? 0 : -1}
       onKeyDown={(event) => {
-        if (rawgUrl && (event.key === "Enter" || event.key === " ")) {
+        if (isClickable && (event.key === "Enter" || event.key === " ")) {
           event.preventDefault()
-          handleOpen()
+          void handleOpen()
         }
       }}
     >

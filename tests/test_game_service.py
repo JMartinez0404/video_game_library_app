@@ -151,6 +151,7 @@ def test_import_external_game_by_id():
     assert result.title == "Zelda Test"
     assert result.personal_rating == 0.0
     assert result.platform == Platform.PS1
+    assert result.rawg_slug == "zelda-test"
 
 def test_import_external_game_maps_platform():
     class SwitchRawgClient:

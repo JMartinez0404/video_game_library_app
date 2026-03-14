@@ -33,3 +33,4 @@ class VideoGame:
     platform: Platform
     image_url: str
     release_date: str
+    rawg_slug: Optional[str] = None

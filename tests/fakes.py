@@ -69,6 +69,7 @@ class FakeRawgClient:
         return {
             "id": 1,
             "name": "Zelda Test",
+            "slug": "zelda-test",
             "released": "2020-01-01",
             "platforms": "PS1",
             "rating": 4.5,

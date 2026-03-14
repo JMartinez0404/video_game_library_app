@@ -12,6 +12,7 @@ class VideoGameCreate(BaseModel):
     platform: Platform
     image_url: HttpUrl
     release_date: str
+    rawg_slug: Optional[str] = None
 
     #TODO: Check if this is okay
     @field_validator('image_url', mode='after')
@@ -32,6 +33,7 @@ class VideoGameResponse(BaseModel):
     platform: Platform
     image_url: HttpUrl
     release_date: str
+    rawg_slug: Optional[str] = None
 
     class Config:
         from_attributes = True

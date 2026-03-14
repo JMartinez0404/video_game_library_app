@@ -19,7 +19,8 @@ class SQLAlchemyGameRepository(GameRepository):
             play_state=video_game.play_state.name,
             platform=video_game.platform.name,
             image_url=video_game.image_url,
-            release_date=video_game.release_date
+            release_date=video_game.release_date,
+            rawg_slug=video_game.rawg_slug,
         )
 
         self.db.add(db_game)
@@ -34,7 +35,8 @@ class SQLAlchemyGameRepository(GameRepository):
             play_state=db_game.play_state,
             platform=db_game.platform,
             image_url=db_game.image_url,
-            release_date=db_game.release_date
+            release_date=db_game.release_date,
+            rawg_slug=db_game.rawg_slug,
         )
 
     def list(
@@ -64,7 +66,8 @@ class SQLAlchemyGameRepository(GameRepository):
                 play_state=PlayState[g.play_state],
                 platform=Platform[g.platform],
                 image_url=g.image_url,
-                release_date=g.release_date
+                release_date=g.release_date,
+                rawg_slug=g.rawg_slug,
             )
             for g in video_games
         ]
@@ -87,4 +90,5 @@ class SQLAlchemyGameRepository(GameRepository):
             platform=Platform[game_to_delete.platform],
             image_url=game_to_delete.image_url,
             release_date=game_to_delete.release_date,
+            rawg_slug=game_to_delete.rawg_slug,
         )

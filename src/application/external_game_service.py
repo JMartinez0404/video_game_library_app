@@ -92,7 +92,8 @@ class ExternalGameService:
             play_state=PlayState.NOT_STARTED,
             platform=platform,
             image_url=data["background_image"],
-            release_date=data["released"]
+            release_date=data["released"],
+            rawg_slug=data.get("slug"),
         )
 
         return self.repository.add(game)

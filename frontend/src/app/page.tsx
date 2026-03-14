@@ -117,14 +117,61 @@ export default function Home() {
     if (game.rawg_slug) {
       return `https://rawg.io/games/${game.rawg_slug}`
     }
-    if (!game.title) {
-      return null
-    }
-    const slug = game.title
+    return null
+  }
+
+  function slugifyTitle(title: string): string {
+    return title
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/(^-|-$)+/g, "")
+  }
 
+  function normalizeTitle(title: string): string {
+    return title
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "")
+  }
+
+  async function resolveRawgUrl(game: VideoGame): Promise<string | null> {
+    if (game.rawg_slug) {
+      return `https://rawg.io/games/${game.rawg_slug}`
+    }
+    if (!game.title) {
+      return null
+    }
+
+    try {
+      const response = await searchExternalGames(game.title, 1, 20)
+      const releaseDate = game.release_date?.slice(0, 10)
+      if (releaseDate) {
+        const matchByDate = response.results.find(
+          (result) => result.release_date?.slice(0, 10) === releaseDate,
+        )
+        if (matchByDate?.rawg_slug) {
+          return `https://rawg.io/games/${matchByDate.rawg_slug}`
+        }
+      }
+
+      const normalizedTitle = normalizeTitle(game.title)
+      const matchByTitle = response.results.find(
+        (result) =>
+          result.title && normalizeTitle(result.title) === normalizedTitle,
+      )
+      if (matchByTitle?.rawg_slug) {
+        return `https://rawg.io/games/${matchByTitle.rawg_slug}`
+      }
+    } catch (error) {
+      setSearchError(
+        error instanceof Error ? error.message : "Search failed. Try again.",
+      )
+    }
+
+    const slug = slugifyTitle(game.title)
     return slug ? `https://rawg.io/games/${slug}` : null
   }
 
@@ -263,6 +310,7 @@ export default function Home() {
               imageUrl={game.image_url}
               releaseDate={game.release_date}
               rawgUrl={buildRawgUrl(game)}
+              onResolveRawgUrl={() => resolveRawgUrl(game)}
               onImport={view === "search" ? handleImport : undefined}
               onRemove={view === "library" ? handleRemove : undefined}
             />

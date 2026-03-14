@@ -14,3 +14,4 @@ class GameModel(Base):
     platform = Column(String)
     image_url = Column(String)
     release_date = Column(String)
+    rawg_slug = Column(String, nullable=True)
