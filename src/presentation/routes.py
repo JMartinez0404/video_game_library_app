@@ -12,6 +12,7 @@ from application.external_game_service import ExternalGameService
 from application.game_use_cases import GameService
 from application.errors import ExternalApiError
 from domain.entities import PlayState, Platform, VideoGame
+from presentation.auth import verify_api_key
 from presentation.schemas import (
     ExternalGameResponse,
     ExternalGameSearchResponse,
@@ -27,7 +28,8 @@ router = APIRouter()
 @router.post("/video_games", response_model=VideoGameResponse)
 def add_game(
     game_data: VideoGameCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    api_key: str = Depends(verify_api_key),
 ):
     repository = SQLAlchemyGameRepository(db)
     service = GameService(repository)
@@ -47,6 +49,7 @@ def list_games(
     sort_by: Optional[str] = None,
     sort_order: str = "asc",
     db: Session = Depends(get_db),
+    api_key: str = Depends(verify_api_key),
 ):
     repository = SQLAlchemyGameRepository(db)
     service = GameService(repository)
@@ -62,7 +65,10 @@ def list_games(
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 @router.delete("/video_games")
-def delete_all_games(db: Session = Depends(get_db)):
+def delete_all_games(
+    db: Session = Depends(get_db),
+    api_key: str = Depends(verify_api_key),
+):
     repository = SQLAlchemyGameRepository(db)
     service = GameService(repository)
 
@@ -71,7 +77,11 @@ def delete_all_games(db: Session = Depends(get_db)):
     return {"message": "All video games removed"}
 
 @router.delete("/video_games/{game_name}", response_model=VideoGameResponse)
-def delete_games(game_name: str, db: Session = Depends(get_db)):
+def delete_games(
+    game_name: str,
+    db: Session = Depends(get_db),
+    api_key: str = Depends(verify_api_key),
+):
     repository = SQLAlchemyGameRepository(db)
     service = GameService(repository)
 
@@ -126,6 +136,7 @@ def get_external_game_by_id(game_id: int, db: Session = Depends(get_db)):
     response_model=VideoGameResponse
 )
 def import_external_game(game_id: int, db: Session = Depends(get_db)):
+    api_key: str = Depends(verify_api_key),
     repository = SQLAlchemyGameRepository(db)
     rawg_client = RawgClient(RAWG_API_KEY)
     service = ExternalGameService(repository, rawg_client)
@@ -136,7 +147,10 @@ def import_external_game(game_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=502, detail=exc.message) from exc
 
 @router.post("/external/video_games/backfill_slugs")
-def backfill_external_game_slugs(db: Session = Depends(get_db)):
+def backfill_external_game_slugs(
+    db: Session = Depends(get_db),
+    api_key: str = Depends(verify_api_key),
+):
     repository = SQLAlchemyGameRepository(db)
     rawg_client = RawgClient(RAWG_API_KEY)
     service = ExternalGameService(repository, rawg_client)

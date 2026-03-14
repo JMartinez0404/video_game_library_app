@@ -5,6 +5,7 @@ from domain.entities import PlayState, Platform, VideoGame
 
 
 client = TestClient(app)
+AUTH_HEADERS = {"Authorization": "Bearer dev-key"}
 
 
 def test_external_search_route(monkeypatch):
@@ -100,7 +101,7 @@ def test_external_import_route(monkeypatch):
         fake_import_game_by_id
     )
 
-    response = client.post("/external/video_games/1/import")
+    response = client.post("/external/video_games/1/import", headers=AUTH_HEADERS)
 
     assert response.status_code == 200
     assert response.json()["title"] == "Imported Game"
@@ -114,7 +115,7 @@ def test_external_backfill_route(monkeypatch):
         fake_backfill
     )
 
-    response = client.post("/external/video_games/backfill_slugs")
+    response = client.post("/external/video_games/backfill_slugs", headers=AUTH_HEADERS)
 
     assert response.status_code == 200
     assert response.json()["updated"] == 2

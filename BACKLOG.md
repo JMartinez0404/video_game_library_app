@@ -8,6 +8,8 @@ Guidelines:
 - Keep items short and action-oriented.
 
 Backlog:
+- ~~Add auth-protected API key for library endpoints.~~
+- ~~Improve SearchBar layout (wider input, button spacing).~~
 - ~~Add backfill RAWG slugs button to the frontend.~~
 - ~~Backfill RAWG slugs for existing library entries.~~
 - ~~Link game cards to RAWG game pages in both search and library views.~~
@@ -22,7 +24,7 @@ Backlog:
 - ~~Add library filters and sorting in the backend and frontend.~~
 - ~~Add pagination for RAWG search results.~~
 - ~~Add rate limiting for external API calls.~~
-- Add authentication for user libraries.
+- ~~Add authentication for user libraries.~~
 - Add tests for `ExternalGameService` with a fake RAWG client.
 - Expand API route tests for external game endpoints.
 - Add mobile-responsive layout improvements.
