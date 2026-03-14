@@ -8,12 +8,19 @@ class RawgClient:
     def __init__(self, api_key: str):
         self.api_key = api_key
 
-    def search_games_by_name(self, game_name: str) -> Dict[str, Any]:
+    def search_games_by_name(
+        self,
+        game_name: str,
+        page: int = 1,
+        page_size: int = 10,
+    ) -> Dict[str, Any]:
         response = requests.get(
             f"{self.BASE_URL}/games",
             params={
                 "key": self.api_key,
                 "search": game_name,
+                "page": page,
+                "page_size": page_size,
             },
             timeout=10,
         )
@@ -30,4 +37,3 @@ class RawgClient:
 
         response.raise_for_status()
         return response.json()
-

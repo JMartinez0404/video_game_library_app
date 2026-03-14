@@ -16,12 +16,17 @@ import SearchBar from "@/components/SearchBar"
 
 export default function Home() {
   const project = "Digital Video Game Library"
+  const searchPageSize = 10
   const [games, setGames] = useState<VideoGame[]>([])
   const [view, setView] = useState<"library" | "search">("library")
   const [isLoadingLibrary, setIsLoadingLibrary] = useState(false)
   const [isSearching, setIsSearching] = useState(false)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [searchError, setSearchError] = useState<string | null>(null)
   const [libraryError, setLibraryError] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [searchPage, setSearchPage] = useState(1)
+  const [searchTotal, setSearchTotal] = useState(0)
   const [filters, setFilters] = useState<LibraryQuery>({
     sort_by: "title",
     sort_order: "asc",
@@ -57,8 +62,11 @@ export default function Home() {
     setIsSearching(true)
     setSearchError(null)
     try {
-      const results = await searchExternalGames(trimmed)
-      setGames(results)
+      const response = await searchExternalGames(trimmed, 1, searchPageSize)
+      setGames(response.results)
+      setSearchQuery(trimmed)
+      setSearchPage(1)
+      setSearchTotal(response.count)
       setView("search")
     } catch (error) {
       setSearchError(
@@ -78,6 +86,46 @@ export default function Home() {
   async function handleRemove(title: string) {
     await removeGame(title)
     await loadLibrary(filters)
+  }
+
+  async function handleLoadMore() {
+    if (!searchQuery || isLoadingMore) {
+      return
+    }
+    const nextPage = searchPage + 1
+    setIsLoadingMore(true)
+    setSearchError(null)
+    try {
+      const response = await searchExternalGames(
+        searchQuery,
+        nextPage,
+        searchPageSize,
+      )
+      setGames((prev) => [...prev, ...response.results])
+      setSearchPage(nextPage)
+      setSearchTotal(response.count)
+    } catch (error) {
+      setSearchError(
+        error instanceof Error ? error.message : "Search failed. Try again.",
+      )
+    } finally {
+      setIsLoadingMore(false)
+    }
+  }
+
+  function buildRawgUrl(game: VideoGame): string | null {
+    if (game.rawg_slug) {
+      return `https://rawg.io/games/${game.rawg_slug}`
+    }
+    if (!game.title) {
+      return null
+    }
+    const slug = game.title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)+/g, "")
+
+    return slug ? `https://rawg.io/games/${slug}` : null
   }
 
   function updateFilters(patch: Partial<LibraryQuery>) {
@@ -214,10 +262,23 @@ export default function Home() {
               rating={game.communal_rating}
               imageUrl={game.image_url}
               releaseDate={game.release_date}
+              rawgUrl={buildRawgUrl(game)}
               onImport={view === "search" ? handleImport : undefined}
               onRemove={view === "library" ? handleRemove : undefined}
             />
           ))}
+
+          {view === "search" &&
+            games.length < searchTotal && (
+              <button
+                type="button"
+                onClick={handleLoadMore}
+                disabled={isLoadingMore}
+                className="rounded-full border border-zinc-300 px-4 py-2 text-xs font-semibold text-zinc-700 transition hover:border-zinc-400 hover:text-zinc-900 disabled:cursor-not-allowed disabled:opacity-60 dark:border-zinc-700 dark:text-zinc-200 dark:hover:border-zinc-500 dark:hover:text-white"
+              >
+                {isLoadingMore ? "Loading..." : "Load more"}
+              </button>
+            )}
         </div>
       </main>
     </div>

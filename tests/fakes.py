@@ -42,12 +42,21 @@ class FakeGameRepository(GameRepository):
                 return self.video_games.pop(index)
 
 class FakeRawgClient:
-    def search_games_by_name(self, game_name: str):
+    def search_games_by_name(
+        self,
+        game_name: str,
+        page: int = 1,
+        page_size: int = 10,
+    ):
         return {
+            "count": 1,
+            "next": None,
+            "previous": None,
             "results": [
                 {
                     "id": "1",
                     "name": "Zelda Test",
+                    "slug": "zelda-test",
                     "released": "2020-01-01",
                     "platforms": "PS1",
                     "rating": 4.5,

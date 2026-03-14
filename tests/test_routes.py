@@ -9,12 +9,21 @@ client = TestClient(app)
 
 def test_external_search_route(monkeypatch):
 
-    def fake_search_games_by_name(self, game_name: str):
+    def fake_search_games_by_name(
+        self,
+        game_name: str,
+        page: int = 1,
+        page_size: int = 10,
+    ):
         return {
+            "count": 1,
+            "next": None,
+            "previous": None,
             "results": [
                 {
                     "id": 1,
                     "name": "Mock Zelda",
+                    "slug": "mock-zelda",
                     "platforms": "PS1",
                     "released": "2021-01-01",
                     "rating": 5.0,
@@ -31,10 +40,15 @@ def test_external_search_route(monkeypatch):
     response = client.get("/external/video_games/search?game_name=zelda")
 
     assert response.status_code == 200
-    assert response.json()[0]["title"] == "Mock Zelda"
+    assert response.json()["results"][0]["title"] == "Mock Zelda"
 
 def test_external_search_route_handles_rawg_error(monkeypatch):
-    def fake_search_games_by_name(self, game_name: str):
+    def fake_search_games_by_name(
+        self,
+        game_name: str,
+        page: int = 1,
+        page_size: int = 10,
+    ):
         raise ExternalApiError("RAWG search failed")
 
     monkeypatch.setattr(

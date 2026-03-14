@@ -8,6 +8,7 @@ Guidelines:
 - Keep items short and action-oriented.
 
 Backlog:
+- ~~Link game cards to RAWG game pages in both search and library views.~~
 - ~~Swap "Add to Library" for "Remove from Library" when viewing library entries.~~
 - ~~Resolve duplicate POST `/external/video_games/{game_id}/import` route and remove dead `import_game` call.~~
 - ~~Fix layering by moving `ExternalGameDTO` out of infrastructure and updating imports.~~
@@ -17,7 +18,7 @@ Backlog:
 - ~~Add loading and error states to the frontend search flow.~~
 - ~~Display cover images and improve `GameCard` layout.~~
 - ~~Add library filters and sorting in the backend and frontend.~~
-- Add pagination for RAWG search results.
+- ~~Add pagination for RAWG search results.~~
 - Add rate limiting for external API calls.
 - Add authentication for user libraries.
 - Add tests for `ExternalGameService` with a fake RAWG client.

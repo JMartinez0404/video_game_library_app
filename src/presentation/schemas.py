@@ -43,3 +43,11 @@ class ExternalGameResponse(BaseModel):
     communal_rating: Optional[float]
     image_url: Optional[HttpUrl]
     release_date: Optional[str]
+    rawg_slug: Optional[str]
+
+
+class ExternalGameSearchResponse(BaseModel):
+    count: int
+    next: Optional[str]
+    previous: Optional[str]
+    results: list[ExternalGameResponse]

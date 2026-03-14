@@ -3,7 +3,7 @@ import requests
 from domain.entities import VideoGame, PlayState, Platform
 from domain.repositories import GameRepository
 from infrastructure.external_apis.rawg_client import RawgClient
-from application.dtos import ExternalGameDTO
+from application.dtos import ExternalGameDTO, ExternalGameSearchResult
 from application.errors import ExternalApiError
 
 
@@ -18,9 +18,18 @@ class ExternalGameService:
         self.rawg_client = rawg_client
 
     # -------- SEARCH BY NAME --------
-    def search_by_name(self, game_name: str) -> List[ExternalGameDTO]:
+    def search_by_name(
+        self,
+        game_name: str,
+        page: int = 1,
+        page_size: int = 10,
+    ) -> ExternalGameSearchResult:
         try:
-            data = self.rawg_client.search_games_by_name(game_name)
+            data = self.rawg_client.search_games_by_name(
+                game_name,
+                page=page,
+                page_size=page_size,
+            )
         except requests.RequestException as exc:
             raise ExternalApiError(
                 "RAWG search failed",
@@ -28,16 +37,22 @@ class ExternalGameService:
             ) from exc
         results = data.get("results", [])
 
-        return [
-            ExternalGameDTO(
-                id=g["id"],
-                title=g["name"],
-                communal_rating=g.get("rating"),
-                image_url=g.get("background_image"),
-                release_date=g.get("released"),
-            )
-            for g in results
-        ]
+        return ExternalGameSearchResult(
+            count=data.get("count", 0),
+            next=data.get("next"),
+            previous=data.get("previous"),
+            results=[
+                ExternalGameDTO(
+                    id=g["id"],
+                    title=g["name"],
+                    communal_rating=g.get("rating"),
+                    image_url=g.get("background_image"),
+                    release_date=g.get("released"),
+                    rawg_slug=g.get("slug"),
+                )
+                for g in results
+            ],
+        )
 
     # -------- GET BY ID --------
     def get_by_id(self, game_id: int) -> ExternalGameDTO:
@@ -55,6 +70,7 @@ class ExternalGameService:
             communal_rating=data.get("rating"),
             image_url=data.get("background_image"),
             release_date=data.get("released"),
+            rawg_slug=data.get("slug"),
         )
     
     # -------- IMPORT INTO LIBRARY --------

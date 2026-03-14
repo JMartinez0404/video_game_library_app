@@ -108,13 +108,19 @@ def test_search_external_games_by_name():
 
     results = service.search_by_name("zelda")
 
-    assert len(results) == 1
-    assert results[0].title == "Zelda Test"
-    assert results[0].communal_rating == 4.5
+    assert results.count == 1
+    assert len(results.results) == 1
+    assert results.results[0].title == "Zelda Test"
+    assert results.results[0].communal_rating == 4.5
 
 def test_search_external_games_handles_rawg_error():
     class ErrorRawgClient:
-        def search_games_by_name(self, game_name: str):
+        def search_games_by_name(
+            self,
+            game_name: str,
+            page: int = 1,
+            page_size: int = 10,
+        ):
             raise requests.RequestException("RAWG error")
 
     service = ExternalGameService(repository=None, rawg_client=ErrorRawgClient())

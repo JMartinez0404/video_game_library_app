@@ -14,6 +14,7 @@ from application.errors import ExternalApiError
 from domain.entities import PlayState, Platform, VideoGame
 from presentation.schemas import (
     ExternalGameResponse,
+    ExternalGameSearchResponse,
     VideoGameCreate,
     VideoGameResponse,
 )
@@ -78,10 +79,12 @@ def delete_games(game_name: str, db: Session = Depends(get_db)):
 
 @router.get(
     "/external/video_games/search",
-    response_model=list[ExternalGameResponse],
+    response_model=ExternalGameSearchResponse,
 )
 def search_external_games_by_name(
     game_name: str,
+    page: int = 1,
+    page_size: int = 10,
     db: Session = Depends(get_db)
 ):
     repository = SQLAlchemyGameRepository(db)
@@ -89,10 +92,19 @@ def search_external_games_by_name(
     service = ExternalGameService(repository, rawg_client)
 
     try:
-        results = service.search_by_name(game_name)
+        results = service.search_by_name(
+            game_name,
+            page=page,
+            page_size=page_size,
+        )
     except ExternalApiError as exc:
         raise HTTPException(status_code=502, detail=exc.message) from exc
-    return [ExternalGameResponse(**asdict(dto)) for dto in results]
+    return ExternalGameSearchResponse(
+        count=results.count,
+        next=results.next,
+        previous=results.previous,
+        results=[ExternalGameResponse(**asdict(dto)) for dto in results.results],
+    )
 
 @router.get(
     "/external/video_games/{game_id}",

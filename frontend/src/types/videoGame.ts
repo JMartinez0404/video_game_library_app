@@ -1,10 +1,11 @@
 export type VideoGame = {
   id: number
   title: string
-  communal_rating: number
-  personal_rating: number
-  play_state: string
-  platform: string
-  image_url: string
-  release_date: string
+  communal_rating?: number | null
+  personal_rating?: number | null
+  play_state?: string | null
+  platform?: string | null
+  image_url?: string | null
+  release_date?: string | null
+  rawg_slug?: string | null
 }
