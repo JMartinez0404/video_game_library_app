@@ -47,7 +47,7 @@ export default function GameCard({
         }
       }}
     >
-      <div className="relative h-20 w-14 flex-shrink-0 overflow-hidden rounded-lg bg-gradient-to-br from-zinc-200 to-zinc-100 dark:from-zinc-800 dark:to-zinc-700">
+      <div className="relative h-20 w-14 flex-shrink-0 overflow-hidden rounded-lg bg-gradient-to-br from-zinc-200 to-zinc-100 dark:from-zinc-800 dark:to-zinc-700 sm:h-24 sm:w-16">
         {imageUrl ? (
           <img
             src={imageUrl}
@@ -62,7 +62,7 @@ export default function GameCard({
         )}
       </div>
 
-      <div className="flex w-full items-center justify-between gap-4">
+      <div className="flex w-full flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-col gap-1">
           {rawgUrl ? (
             <a
@@ -90,28 +90,30 @@ export default function GameCard({
           </div>
         </div>
 
-        {showImport && onImport && (
-          <button
-            onClick={(event) => {
-              event.stopPropagation()
-              onImport(id)
-            }}
-            className="rounded-full bg-zinc-900 px-4 py-2 text-xs font-semibold text-white transition hover:bg-black dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white"
-          >
-            Add to Library
-          </button>
-        )}
-        {showRemove && onRemove && (
-          <button
-            onClick={(event) => {
-              event.stopPropagation()
-              onRemove(title)
-            }}
-            className="rounded-full border border-zinc-300 px-4 py-2 text-xs font-semibold text-zinc-700 transition hover:border-zinc-400 hover:text-zinc-900 dark:border-zinc-700 dark:text-zinc-200 dark:hover:border-zinc-500 dark:hover:text-white"
-          >
-            Remove from Library
-          </button>
-        )}
+        <div className="flex w-full flex-wrap gap-2 sm:w-auto sm:justify-end">
+          {showImport && onImport && (
+            <button
+              onClick={(event) => {
+                event.stopPropagation()
+                onImport(id)
+              }}
+              className="rounded-full bg-zinc-900 px-4 py-2 text-xs font-semibold text-white transition hover:bg-black dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white"
+            >
+              Add to Library
+            </button>
+          )}
+          {showRemove && onRemove && (
+            <button
+              onClick={(event) => {
+                event.stopPropagation()
+                onRemove(title)
+              }}
+              className="rounded-full border border-zinc-300 px-4 py-2 text-xs font-semibold text-zinc-700 transition hover:border-zinc-400 hover:text-zinc-900 dark:border-zinc-700 dark:text-zinc-200 dark:hover:border-zinc-500 dark:hover:text-white"
+            >
+              Remove from Library
+            </button>
+          )}
+        </div>
       </div>
     </div>
   )

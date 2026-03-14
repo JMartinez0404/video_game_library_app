@@ -8,6 +8,9 @@ Guidelines:
 - Keep items short and action-oriented.
 
 Backlog:
+- ~~Add external game service test coverage for pagination and slugs.~~
+- ~~Expand external game route tests for pagination parameters.~~
+- ~~Add mobile-responsive layout improvements.~~
 - ~~Add auth-protected API key for library endpoints.~~
 - ~~Improve SearchBar layout (wider input, button spacing).~~
 - ~~Add backfill RAWG slugs button to the frontend.~~
@@ -25,8 +28,8 @@ Backlog:
 - ~~Add pagination for RAWG search results.~~
 - ~~Add rate limiting for external API calls.~~
 - ~~Add authentication for user libraries.~~
-- Add tests for `ExternalGameService` with a fake RAWG client.
-- Expand API route tests for external game endpoints.
-- Add mobile-responsive layout improvements.
+- ~~Add tests for `ExternalGameService` with a fake RAWG client.~~
+- ~~Expand API route tests for external game endpoints.~~
+- ~~Add mobile-responsive layout improvements.~~
 
 Done:

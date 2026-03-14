@@ -112,6 +112,17 @@ def test_search_external_games_by_name():
     assert len(results.results) == 1
     assert results.results[0].title == "Zelda Test"
     assert results.results[0].communal_rating == 4.5
+    assert results.results[0].rawg_slug == "zelda-test"
+
+def test_search_external_games_pagination_metadata():
+    fake_client = FakeRawgClient()
+    service = ExternalGameService(repository=None, rawg_client=fake_client)
+
+    results = service.search_by_name("zelda", page=2, page_size=5)
+
+    assert results.count == 1
+    assert results.next is None
+    assert results.previous is None
 
 def test_search_external_games_handles_rawg_error():
     class ErrorRawgClient:
@@ -138,6 +149,7 @@ def test_get_external_game_by_id():
 
     assert result.id == 1
     assert result.communal_rating == 4.5
+    assert result.rawg_slug == "zelda-test"
 
 def test_import_external_game_by_id():
     fake_repo = FakeGameRepository()
