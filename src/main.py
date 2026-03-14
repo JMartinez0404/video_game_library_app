@@ -36,4 +36,16 @@ def ensure_rawg_slug_column() -> None:
 
 ensure_rawg_slug_column()
 
+def ensure_rawg_platforms_column() -> None:
+    inspector = inspect(engine)
+    if "video_games" not in inspector.get_table_names():
+        return
+    columns = {column["name"] for column in inspector.get_columns("video_games")}
+    if "rawg_platforms" in columns:
+        return
+    with engine.begin() as connection:
+        connection.execute(text("ALTER TABLE video_games ADD COLUMN rawg_platforms VARCHAR"))
+
+ensure_rawg_platforms_column()
+
 app.include_router(router)

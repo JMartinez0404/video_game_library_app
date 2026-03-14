@@ -10,6 +10,7 @@ class ExternalGameDTO:
     image_url: Optional[str]
     release_date: Optional[str]
     rawg_slug: Optional[str]
+    rawg_platforms: list[str]
 
 
 @dataclass

@@ -5,6 +5,7 @@ import {
   importGame,
   backfillRawgSlugs,
   removeGame,
+  updateGame,
   searchExternalGames,
   type LibraryQuery,
 } from "@/lib/api/games"
@@ -90,6 +91,22 @@ export default function Home() {
   async function handleRemove(title: string) {
     await removeGame(title)
     await loadLibrary(filters)
+  }
+
+  async function handleUpdate(
+    id: number,
+    update: { personal_rating?: number | null; platform?: string | null },
+  ) {
+    try {
+      const updated = await updateGame(id, update)
+      setGames((prev) =>
+        prev.map((game) => (game.id === id ? updated : game)),
+      )
+    } catch (error) {
+      setLibraryError(
+        error instanceof Error ? error.message : "Update failed.",
+      )
+    }
   }
 
   async function handleBackfill() {
@@ -346,12 +363,17 @@ export default function Home() {
               id={game.id}
               title={game.title}
               rating={game.communal_rating}
+              personalRating={game.personal_rating}
+              playState={game.play_state}
+              platform={game.platform}
               imageUrl={game.image_url}
               releaseDate={game.release_date}
               rawgUrl={buildRawgUrl(game)}
+              rawgPlatforms={game.rawg_platforms}
               onResolveRawgUrl={() => resolveRawgUrl(game)}
               onImport={view === "search" ? handleImport : undefined}
               onRemove={view === "library" ? handleRemove : undefined}
+              onUpdate={view === "library" ? handleUpdate : undefined}
             />
           ))}
 

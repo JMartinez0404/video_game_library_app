@@ -8,4 +8,5 @@ export type VideoGame = {
   image_url?: string | null
   release_date?: string | null
   rawg_slug?: string | null
+  rawg_platforms?: string[] | null
 }

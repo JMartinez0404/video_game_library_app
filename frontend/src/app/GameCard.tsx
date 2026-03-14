@@ -1,30 +1,55 @@
+"use client"
+
+import { useEffect, useMemo, useState } from "react"
+
 type GameCardProps = {
   id: number
   title: string
   rating?: number | null
+  personalRating?: number | null
+  playState?: string | null
+  platform?: string | null
   imageUrl?: string | null
   releaseDate?: string | null
   rawgUrl?: string | null
+  rawgPlatforms?: string[] | null
   onResolveRawgUrl?: () => Promise<string | null>
   onImport?: (id: number) => void
   onRemove?: (title: string) => void
+  onUpdate?: (
+    id: number,
+    update: { personal_rating?: number | null; platform?: string | null },
+  ) => Promise<void> | void
 }
 
 export default function GameCard({
   id,
   title,
   rating,
+  personalRating,
+  playState,
+  platform,
   imageUrl,
   releaseDate,
   rawgUrl,
+  rawgPlatforms,
   onResolveRawgUrl,
   onImport,
   onRemove,
+  onUpdate,
 }: GameCardProps) {
   const displayRating =
     rating === null || rating === undefined ? "N/A" : rating.toFixed(1)
+  const displayPersonalRating =
+    personalRating === null || personalRating === undefined
+      ? ""
+      : personalRating.toString()
   const showRemove = Boolean(onRemove)
   const showImport = Boolean(onImport) && !showRemove
+  const isEditable = Boolean(onUpdate) && showRemove
+  const [ratingInput, setRatingInput] = useState(displayPersonalRating)
+  const [platformInput, setPlatformInput] = useState(platform ?? "")
+  const [isUpdating, setIsUpdating] = useState(false)
   const handleOpen = async () => {
     const url = rawgUrl ?? (onResolveRawgUrl ? await onResolveRawgUrl() : null)
     if (!url) {
@@ -33,6 +58,115 @@ export default function GameCard({
     window.open(url, "_blank", "noopener,noreferrer")
   }
   const isClickable = Boolean(rawgUrl || onResolveRawgUrl)
+
+  useEffect(() => {
+    setRatingInput(displayPersonalRating)
+  }, [displayPersonalRating])
+
+  useEffect(() => {
+    setPlatformInput(platform ?? "")
+  }, [platform])
+
+  const platformOptions = useMemo(() => {
+    const normalized = (rawgPlatforms ?? []).map((name) => name.trim()).filter(Boolean)
+
+    const mapRawgToEnum = (name: string): string | null => {
+      const lower = name.toLowerCase()
+      if (lower.includes("switch 2") || lower.includes("nintendo switch 2") || lower.includes("switch2")) {
+        return "SWITCH2"
+      }
+      if (lower.includes("switch")) return "SWITCH"
+      if (lower.includes("playstation 5") || lower.includes("ps5") || lower.includes("playstation5")) {
+        return "PS5"
+      }
+      if (lower.includes("playstation 4") || lower.includes("ps4") || lower.includes("playstation4")) {
+        return "PS4"
+      }
+      if (lower.includes("playstation 3") || lower.includes("ps3") || lower.includes("playstation3")) {
+        return "PS3"
+      }
+      if (lower.includes("playstation 2") || lower.includes("ps2") || lower.includes("playstation2")) {
+        return "PS2"
+      }
+      if (lower.includes("playstation portable") || lower.includes("psp")) {
+        return "PSP"
+      }
+      if (lower.includes("3ds") || lower.includes("nintendo 3ds")) {
+        return "THREE_DS"
+      }
+      if (lower.includes("nintendo ds") || (lower === "ds" && !lower.includes("3ds"))) {
+        return "DS"
+      }
+      if (lower.includes("wii")) return "WII"
+      if (lower.includes("xbox")) return "XBOX"
+      if (lower.includes("playstation") || lower.includes("ps1") || lower.includes("playstation1")) {
+        return "PS1"
+      }
+      return null
+    }
+
+    const mapped = normalized
+      .map((name) => ({
+        label: name,
+        value: mapRawgToEnum(name),
+      }))
+      .filter((option) => option.value)
+
+    const deduped = new Map<string, string>()
+    mapped.forEach((option) => {
+      if (option.value && !deduped.has(option.value)) {
+        deduped.set(option.value, option.label)
+      }
+    })
+
+    if (deduped.size > 0) {
+      return Array.from(deduped.entries()).map(([value, label]) => ({
+        value,
+        label,
+      }))
+    }
+
+    return [
+      { value: "PS1", label: "PS1" },
+      { value: "PS2", label: "PS2" },
+      { value: "PS3", label: "PS3" },
+      { value: "PS4", label: "PS4" },
+      { value: "PS5", label: "PS5" },
+      { value: "SWITCH", label: "Switch" },
+      { value: "SWITCH2", label: "Switch 2" },
+      { value: "DS", label: "DS" },
+      { value: "THREE_DS", label: "3DS" },
+      { value: "WII", label: "Wii" },
+      { value: "PSP", label: "PSP" },
+      { value: "XBOX", label: "Xbox" },
+    ]
+  }, [rawgPlatforms])
+
+  const platformLabelMap: Record<string, string> = {
+    PS1: "PS1",
+    PS2: "PS2",
+    PS3: "PS3",
+    PS4: "PS4",
+    PS5: "PS5",
+    SWITCH: "Switch",
+    SWITCH2: "Switch 2",
+    DS: "DS",
+    THREE_DS: "3DS",
+    WII: "Wii",
+    PSP: "PSP",
+    XBOX: "Xbox",
+  }
+
+  const displayPlatform = platform
+    ? platformLabelMap[platform] ?? platform
+    : null
+
+  const formattedPlayState = playState
+    ? playState
+        .toLowerCase()
+        .replace(/_/g, " ")
+        .replace(/\b\w/g, (char) => char.toUpperCase())
+    : "N/A"
 
   return (
     <div
@@ -80,14 +214,91 @@ export default function GameCard({
           )}
           <div className="flex flex-wrap items-center gap-2 text-xs text-zinc-600 dark:text-zinc-300">
             <span className="rounded-full bg-zinc-200 px-2 py-0.5 font-semibold text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
-              Rating {displayRating}
+              Community {displayRating}
             </span>
+            {personalRating !== null && personalRating !== undefined && (
+              <span className="rounded-full border border-zinc-200 px-2 py-0.5 dark:border-zinc-700">
+                Personal {personalRating.toFixed(1)}
+              </span>
+            )}
+            <span className="rounded-full border border-zinc-200 px-2 py-0.5 dark:border-zinc-700">
+              Play State {formattedPlayState}
+            </span>
+            {displayPlatform && (
+              <span className="rounded-full border border-zinc-200 px-2 py-0.5 dark:border-zinc-700">
+                Platform {displayPlatform}
+              </span>
+            )}
             {releaseDate && (
               <span className="rounded-full border border-zinc-200 px-2 py-0.5 dark:border-zinc-700">
-                {releaseDate}
+                Released {releaseDate}
               </span>
             )}
           </div>
+          {rawgPlatforms && rawgPlatforms.length > 0 && (
+            <div className="flex flex-wrap gap-2 text-[11px] text-zinc-500 dark:text-zinc-400">
+              <span className="font-semibold uppercase tracking-wide">Available</span>
+              <span>{rawgPlatforms.join(", ")}</span>
+            </div>
+          )}
+          {isEditable && (
+            <div
+              className="flex flex-wrap items-center gap-3 text-xs text-zinc-600 dark:text-zinc-300"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <label className="flex flex-col gap-1">
+                Personal Rating
+                <input
+                  type="number"
+                  min={0}
+                  max={10}
+                  step={0.1}
+                  value={ratingInput}
+                  onChange={(event) => setRatingInput(event.target.value)}
+                  className="w-24 rounded-md border border-zinc-200 px-2 py-1 text-xs dark:border-zinc-700 dark:bg-zinc-900"
+                />
+              </label>
+              <label className="flex flex-col gap-1">
+                Platform
+                <select
+                  value={platformInput}
+                  onChange={(event) => setPlatformInput(event.target.value)}
+                  className="min-w-[140px] rounded-md border border-zinc-200 bg-white px-2 py-1 text-xs dark:border-zinc-700 dark:bg-zinc-900"
+                >
+                  {platformOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <button
+                type="button"
+                onClick={async (event) => {
+                  event.stopPropagation()
+                  if (!onUpdate) return
+                  const nextRating = ratingInput.trim()
+                  const parsedRating = nextRating === "" ? null : Number(nextRating)
+                  if (nextRating !== "" && Number.isNaN(parsedRating)) {
+                    return
+                  }
+                  setIsUpdating(true)
+                  try {
+                    await onUpdate(id, {
+                      personal_rating: parsedRating,
+                      platform: platformInput || null,
+                    })
+                  } finally {
+                    setIsUpdating(false)
+                  }
+                }}
+                disabled={isUpdating}
+                className="mt-4 rounded-full bg-zinc-900 px-3 py-1.5 text-[11px] font-semibold text-white transition hover:bg-black disabled:cursor-not-allowed disabled:opacity-60 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white"
+              >
+                {isUpdating ? "Saving..." : "Save"}
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="flex w-full flex-wrap gap-2 sm:w-auto sm:justify-end">

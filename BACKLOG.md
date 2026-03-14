@@ -8,6 +8,11 @@ Guidelines:
 - Keep items short and action-oriented.
 
 Backlog:
+- ~~Add rawg platform metadata persistence + backfill in the API.~~
+- ~~Add PATCH support to update personal ratings and platform selections.~~
+- ~~Show full game attributes in the library UI and allow editing rating/platform.~~
+- ~~Display selectable platform options based on RAWG platform data.~~
+- ~~Expand tests for new update and rawg platform behavior.~~
 - ~~Add external game service test coverage for pagination and slugs.~~
 - ~~Expand external game route tests for pagination parameters.~~
 - ~~Add mobile-responsive layout improvements.~~

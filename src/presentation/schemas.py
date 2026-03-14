@@ -13,6 +13,7 @@ class VideoGameCreate(BaseModel):
     image_url: HttpUrl
     release_date: str
     rawg_slug: Optional[str] = None
+    rawg_platforms: list[str] | None = None
 
     #TODO: Check if this is okay
     @field_validator('image_url', mode='after')
@@ -34,6 +35,7 @@ class VideoGameResponse(BaseModel):
     image_url: HttpUrl
     release_date: str
     rawg_slug: Optional[str] = None
+    rawg_platforms: list[str] | None = None
 
     class Config:
         from_attributes = True
@@ -46,6 +48,12 @@ class ExternalGameResponse(BaseModel):
     image_url: Optional[HttpUrl]
     release_date: Optional[str]
     rawg_slug: Optional[str]
+    rawg_platforms: list[str] | None = None
+
+
+class VideoGameUpdate(BaseModel):
+    personal_rating: Optional[float] = None
+    platform: Optional[Platform] = None
 
 
 class ExternalGameSearchResponse(BaseModel):

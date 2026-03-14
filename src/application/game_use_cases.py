@@ -40,3 +40,15 @@ class GameService:
     
     def delete_video_game(self, game_name: str) -> VideoGame:
         return self.repository.delete(game_name)
+
+    def update_video_game(
+        self,
+        game_id: int,
+        personal_rating: float | None = None,
+        platform: Platform | None = None,
+    ) -> VideoGame:
+        return self.repository.update(
+            game_id=game_id,
+            personal_rating=personal_rating,
+            platform=platform,
+        )

@@ -113,6 +113,7 @@ def test_search_external_games_by_name():
     assert results.results[0].title == "Zelda Test"
     assert results.results[0].communal_rating == 4.5
     assert results.results[0].rawg_slug == "zelda-test"
+    assert results.results[0].rawg_platforms == ["PS1"]
 
 def test_search_external_games_pagination_metadata():
     fake_client = FakeRawgClient()
@@ -150,6 +151,7 @@ def test_get_external_game_by_id():
     assert result.id == 1
     assert result.communal_rating == 4.5
     assert result.rawg_slug == "zelda-test"
+    assert result.rawg_platforms == ["PS1"]
 
 def test_import_external_game_by_id():
     fake_repo = FakeGameRepository()
@@ -164,6 +166,7 @@ def test_import_external_game_by_id():
     assert result.personal_rating == 0.0
     assert result.platform == Platform.PS1
     assert result.rawg_slug == "zelda-test"
+    assert result.rawg_platforms == ["PS1"]
 
 def test_import_external_game_maps_platform():
     class SwitchRawgClient:
@@ -233,6 +236,34 @@ def test_backfill_rawg_slugs():
     service = ExternalGameService(repository=repo, rawg_client=BackfillRawgClient())
     result = service.backfill_rawg_slugs()
 
-    assert result["updated"] == 1
-    assert result["skipped"] == 1
+    assert result["updated"] == 2
+    assert result["skipped"] == 0
     assert repo.video_games[0].rawg_slug == "matched-slug"
+    assert repo.video_games[0].rawg_platforms == []
+    assert repo.video_games[1].rawg_slug == "zelda-test"
+
+def test_update_video_game_personal_rating_and_platform():
+    repo = FakeGameRepository()
+    service = GameService(repo)
+
+    saved = service.add_video_game(
+        VideoGame(
+            id=None,
+            title="Stardew Valley",
+            communal_rating=9.0,
+            personal_rating=6.5,
+            play_state=PlayState.STARTED,
+            platform=Platform.SWITCH,
+            image_url="img.jpg",
+            release_date="2016-02-26",
+        )
+    )
+
+    updated = service.update_video_game(
+        saved.id,
+        personal_rating=8.0,
+        platform=Platform.PS5,
+    )
+
+    assert updated.personal_rating == 8.0
+    assert updated.platform == Platform.PS5

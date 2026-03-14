@@ -27,5 +27,19 @@ class GameRepository(ABC):
         pass
 
     @abstractmethod
-    def update_rawg_slug(self, game_id: int, rawg_slug: str) -> VideoGame:
+    def update_rawg_metadata(
+        self,
+        game_id: int,
+        rawg_slug: str | None,
+        rawg_platforms: list[str],
+    ) -> VideoGame:
+        pass
+
+    @abstractmethod
+    def update(
+        self,
+        game_id: int,
+        personal_rating: float | None = None,
+        platform: Platform | None = None,
+    ) -> VideoGame:
         pass

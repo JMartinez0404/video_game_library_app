@@ -18,6 +18,7 @@ from presentation.schemas import (
     ExternalGameSearchResponse,
     VideoGameCreate,
     VideoGameResponse,
+    VideoGameUpdate,
 )
 
 
@@ -86,6 +87,22 @@ def delete_games(
     service = GameService(repository)
 
     return service.delete_video_game(game_name)
+
+@router.patch("/video_games/{game_id}", response_model=VideoGameResponse)
+def update_game(
+    game_id: int,
+    game_data: VideoGameUpdate,
+    db: Session = Depends(get_db),
+    api_key: str = Depends(verify_api_key),
+):
+    repository = SQLAlchemyGameRepository(db)
+    service = GameService(repository)
+
+    return service.update_video_game(
+        game_id=game_id,
+        personal_rating=game_data.personal_rating,
+        platform=game_data.platform,
+    )
 
 @router.get(
     "/external/video_games/search",

@@ -47,6 +47,7 @@ def test_external_search_route(monkeypatch):
     assert response.status_code == 200
     assert response.json()["results"][0]["title"] == "Mock Zelda"
     assert response.json()["count"] == 1
+    assert response.json()["results"][0]["rawg_platforms"] == ["PS1"]
     assert captured["page"] == 1
     assert captured["page_size"] == 10
 
@@ -119,6 +120,7 @@ def test_external_get_by_id_route(monkeypatch):
     assert response.status_code == 200
     assert response.json()["id"] == 1
     assert response.json()["rawg_slug"] is None
+    assert response.json()["rawg_platforms"] == []
 
 def test_external_import_route(monkeypatch):
     def fake_import_game_by_id(self, game_id: int):
@@ -156,3 +158,31 @@ def test_external_backfill_route(monkeypatch):
 
     assert response.status_code == 200
     assert response.json()["updated"] == 2
+
+def test_update_game_route(monkeypatch):
+    def fake_update(self, game_id: int, personal_rating=None, platform=None):
+        return VideoGame(
+            id=game_id,
+            title="Updated Game",
+            communal_rating=7.5,
+            personal_rating=personal_rating,
+            play_state=PlayState.NOT_STARTED,
+            platform=platform,
+            image_url="http://image.url",
+            release_date="2022-01-01",
+        )
+
+    monkeypatch.setattr(
+        "application.game_use_cases.GameService.update_video_game",
+        fake_update,
+    )
+
+    response = client.patch(
+        "/video_games/1",
+        headers=AUTH_HEADERS,
+        json={"personal_rating": 8.5, "platform": "PS5"},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["personal_rating"] == 8.5
+    assert response.json()["platform"] == "PS5"

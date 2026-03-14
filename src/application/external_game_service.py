@@ -49,6 +49,9 @@ class ExternalGameService:
                     image_url=g.get("background_image"),
                     release_date=g.get("released"),
                     rawg_slug=g.get("slug"),
+                    rawg_platforms=self._extract_platform_display_names(
+                        g.get("platforms")
+                    ),
                 )
                 for g in results
             ],
@@ -71,6 +74,9 @@ class ExternalGameService:
             image_url=data.get("background_image"),
             release_date=data.get("released"),
             rawg_slug=data.get("slug"),
+            rawg_platforms=self._extract_platform_display_names(
+                data.get("platforms")
+            ),
         )
     
     # -------- IMPORT INTO LIBRARY --------
@@ -83,6 +89,9 @@ class ExternalGameService:
                 status_code=getattr(getattr(exc, "response", None), "status_code", None),
             ) from exc
         platform = self._map_platform(data.get("platforms"))
+        rawg_platforms = self._extract_platform_display_names(
+            data.get("platforms")
+        )
 
         game = VideoGame(
             id=None,
@@ -94,6 +103,7 @@ class ExternalGameService:
             image_url=data["background_image"],
             release_date=data["released"],
             rawg_slug=data.get("slug"),
+            rawg_platforms=rawg_platforms,
         )
 
         return self.repository.add(game)
@@ -174,6 +184,29 @@ class ExternalGameService:
 
         return names
 
+    def _extract_platform_display_names(self, rawg_platforms) -> List[str]:
+        display_names: List[str] = []
+
+        if isinstance(rawg_platforms, list):
+            for item in rawg_platforms:
+                candidate = None
+                if isinstance(item, dict):
+                    platform = item.get("platform")
+                    if isinstance(platform, dict):
+                        candidate = platform.get("name") or platform.get("slug")
+                    else:
+                        candidate = item.get("name") or item.get("slug")
+                if candidate:
+                    display_names.append(str(candidate))
+        elif isinstance(rawg_platforms, dict):
+            candidate = rawg_platforms.get("name") or rawg_platforms.get("slug")
+            if candidate:
+                display_names.append(str(candidate))
+        elif isinstance(rawg_platforms, str):
+            display_names.append(rawg_platforms)
+
+        return list(dict.fromkeys(display_names))
+
     def _normalize_title(self, title: str) -> str:
         return (
             title.lower()
@@ -208,7 +241,9 @@ class ExternalGameService:
         failed = 0
 
         for game in games:
-            if game.rawg_slug:
+            needs_slug = not game.rawg_slug
+            needs_platforms = not game.rawg_platforms
+            if not needs_slug and not needs_platforms:
                 skipped += 1
                 continue
 
@@ -248,8 +283,17 @@ class ExternalGameService:
                     None,
                 )
 
-            if match and match.get("slug"):
-                self.repository.update_rawg_slug(game.id, match["slug"])
+            if match:
+                rawg_platforms = self._extract_platform_display_names(
+                    match.get("platforms")
+                )
+                resolved_slug = game.rawg_slug or match.get("slug")
+                resolved_platforms = rawg_platforms or game.rawg_platforms
+                self.repository.update_rawg_metadata(
+                    game.id,
+                    resolved_slug,
+                    resolved_platforms,
+                )
                 updated += 1
             else:
                 failed += 1

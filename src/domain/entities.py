@@ -34,3 +34,8 @@ class VideoGame:
     image_url: str
     release_date: str
     rawg_slug: Optional[str] = None
+    rawg_platforms: list[str] = None
+
+    def __post_init__(self) -> None:
+        if self.rawg_platforms is None:
+            self.rawg_platforms = []
