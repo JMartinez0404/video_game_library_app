@@ -1,4 +1,6 @@
-from sqlalchemy import select
+from typing import Optional
+
+from sqlalchemy import asc, desc, select
 from sqlalchemy.orm import Session
 from domain.entities import Platform, PlayState, VideoGame
 from domain.repositories import GameRepository
@@ -35,8 +37,24 @@ class SQLAlchemyGameRepository(GameRepository):
             release_date=db_game.release_date
         )
 
-    def list(self):
-        video_games = self.db.query(GameModel).all()
+    def list(
+        self,
+        platform: Optional[Platform] = None,
+        play_state: Optional[PlayState] = None,
+        sort_by: Optional[str] = None,
+        sort_order: str = "asc",
+    ):
+        query = self.db.query(GameModel)
+        if platform is not None:
+            query = query.filter(GameModel.platform == platform.name)
+        if play_state is not None:
+            query = query.filter(GameModel.play_state == play_state.name)
+        if sort_by is not None:
+            sort_column = getattr(GameModel, sort_by)
+            order = asc if sort_order == "asc" else desc
+            query = query.order_by(order(sort_column))
+
+        video_games = query.all()
         return [
             VideoGame(
                 id=g.id,
@@ -60,4 +78,13 @@ class SQLAlchemyGameRepository(GameRepository):
         self.db.delete(game_to_delete)
         self.db.commit()
 
-        return game_to_delete
+        return VideoGame(
+            id=game_to_delete.id,
+            title=game_to_delete.title,
+            communal_rating=game_to_delete.communal_rating,
+            personal_rating=game_to_delete.personal_rating,
+            play_state=PlayState[game_to_delete.play_state],
+            platform=Platform[game_to_delete.platform],
+            image_url=game_to_delete.image_url,
+            release_date=game_to_delete.release_date,
+        )

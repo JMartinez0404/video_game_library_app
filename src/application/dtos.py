@@ -1,8 +1,9 @@
-from pydantic import BaseModel
+from dataclasses import dataclass
 from typing import Optional
 
 
-class ExternalGameDTO(BaseModel):
+@dataclass
+class ExternalGameDTO:
     id: int
     title: str
     communal_rating: Optional[float]

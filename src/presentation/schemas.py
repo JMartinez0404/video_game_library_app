@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pydantic import BaseModel, field_validator, HttpUrl
 from domain.entities import PlayState, Platform
 
@@ -33,3 +35,11 @@ class VideoGameResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class ExternalGameResponse(BaseModel):
+    id: int
+    title: str
+    communal_rating: Optional[float]
+    image_url: Optional[HttpUrl]
+    release_date: Optional[str]

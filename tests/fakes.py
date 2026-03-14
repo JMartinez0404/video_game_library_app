@@ -1,5 +1,7 @@
+from typing import Optional
+
 from domain.repositories import GameRepository
-from domain.entities import VideoGame
+from domain.entities import VideoGame, Platform, PlayState
 
 class FakeGameRepository(GameRepository):
     def __init__(self):
@@ -12,8 +14,24 @@ class FakeGameRepository(GameRepository):
         self.video_games.append(video_game)
         return video_game
 
-    def list(self):
-        return self.video_games
+    def list(
+        self,
+        platform: Optional[Platform] = None,
+        play_state: Optional[PlayState] = None,
+        sort_by: Optional[str] = None,
+        sort_order: str = "asc",
+    ):
+        games = list(self.video_games)
+        if platform is not None:
+            games = [game for game in games if game.platform == platform]
+        if play_state is not None:
+            games = [game for game in games if game.play_state == play_state]
+        if sort_by is not None:
+            games.sort(
+                key=lambda game: getattr(game, sort_by),
+                reverse=sort_order == "desc",
+            )
+        return games
     
     def delete_all(self) -> None:
         self.video_games.clear()

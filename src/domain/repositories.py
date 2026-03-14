@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
-from typing import List
-from .entities import VideoGame
+from typing import List, Optional
+from .entities import VideoGame, Platform, PlayState
 
 class GameRepository(ABC):
 
@@ -9,7 +9,13 @@ class GameRepository(ABC):
         pass
 
     @abstractmethod
-    def list(self) -> List[VideoGame]:
+    def list(
+        self,
+        platform: Optional[Platform] = None,
+        play_state: Optional[PlayState] = None,
+        sort_by: Optional[str] = None,
+        sort_order: str = "asc",
+    ) -> List[VideoGame]:
         pass
 
     @abstractmethod

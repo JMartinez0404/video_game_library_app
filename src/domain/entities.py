@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum, auto
+from typing import Optional
 
 class PlayState(Enum):
     NOT_STARTED = "NOT_STARTED"
@@ -24,7 +25,7 @@ class Platform(Enum):
 
 @dataclass
 class VideoGame:
-    id: int | None
+    id: Optional[int]
     title: str
     communal_rating: float
     personal_rating: float
