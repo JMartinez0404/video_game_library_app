@@ -10,6 +10,9 @@ class PlayState(Enum):
     PLAY_AGAIN = "PLAY_AGAIN"
 
 class Platform(Enum):
+    PC = 'PC'
+    MAC = 'MAC'
+    LINUX = 'LINUX'
     SWITCH = 'SWITCH'
     SWITCH2 = 'SWITCH2'
     PS1 = 'PS1'
@@ -17,11 +20,23 @@ class Platform(Enum):
     PS3 = 'PS3'
     PS4 = 'PS4'
     PS5 = 'PS5'
+    PS_VITA = 'PS_VITA'
     DS = 'DS'
     THREE_DS = 'THREE_DS'
     WII = 'WII'
+    WII_U = 'WII_U'
+    GAMECUBE = 'GAMECUBE'
+    N64 = 'N64'
+    SNES = 'SNES'
+    NES = 'NES'
+    GAMEBOY = 'GAMEBOY'
+    GAMEBOY_COLOR = 'GAMEBOY_COLOR'
+    GAMEBOY_ADVANCE = 'GAMEBOY_ADVANCE'
     PSP = 'PSP'
     XBOX = 'XBOX'
+    XBOX_360 = 'XBOX_360'
+    XBOX_ONE = 'XBOX_ONE'
+    XBOX_SERIES = 'XBOX_SERIES'
 
 @dataclass
 class VideoGame:

@@ -8,6 +8,9 @@ Guidelines:
 - Keep items short and action-oriented.
 
 Backlog:
+- ~~Ensure platform selector keeps current platform even if not listed by RAWG.~~
+- ~~Auto-run RAWG backfill when library entries are missing slugs/platforms.~~
+- ~~Expand platform coverage across backend mappings and frontend selectors.~~
 - ~~Add rawg platform metadata persistence + backfill in the API.~~
 - ~~Add PATCH support to update personal ratings and platform selections.~~
 - ~~Show full game attributes in the library UI and allow editing rating/platform.~~

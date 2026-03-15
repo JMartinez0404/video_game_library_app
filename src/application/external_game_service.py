@@ -140,6 +140,10 @@ class ExternalGameService:
                 return Platform.PSP
 
         for name in names:
+            if "playstation vita" in name or "ps vita" in name or "vita" in name:
+                return Platform.PS_VITA
+
+        for name in names:
             if "3ds" in name or "nintendo 3ds" in name:
                 return Platform.THREE_DS
 
@@ -148,12 +152,68 @@ class ExternalGameService:
                 return Platform.DS
 
         for name in names:
+            if "wii u" in name:
+                return Platform.WII_U
+
+        for name in names:
             if "wii" in name:
                 return Platform.WII
 
         for name in names:
+            if "gamecube" in name:
+                return Platform.GAMECUBE
+
+        for name in names:
+            if "nintendo 64" in name or "n64" in name:
+                return Platform.N64
+
+        for name in names:
+            if "super nintendo" in name or "snes" in name:
+                return Platform.SNES
+
+        for name in names:
+            if "nintendo entertainment system" in name or "nes" in name:
+                return Platform.NES
+
+        for name in names:
+            if "game boy advance" in name or "gba" in name:
+                return Platform.GAMEBOY_ADVANCE
+
+        for name in names:
+            if "game boy color" in name or "gbc" in name:
+                return Platform.GAMEBOY_COLOR
+
+        for name in names:
+            if "game boy" in name or name == "gb":
+                return Platform.GAMEBOY
+
+        for name in names:
+            if "xbox series" in name or "series x" in name or "series s" in name:
+                return Platform.XBOX_SERIES
+
+        for name in names:
+            if "xbox one" in name:
+                return Platform.XBOX_ONE
+
+        for name in names:
+            if "xbox 360" in name:
+                return Platform.XBOX_360
+
+        for name in names:
             if "xbox" in name:
                 return Platform.XBOX
+
+        for name in names:
+            if "macos" in name or "mac os" in name or name == "mac":
+                return Platform.MAC
+
+        for name in names:
+            if "linux" in name:
+                return Platform.LINUX
+
+        for name in names:
+            if "pc" in name or "windows" in name:
+                return Platform.PC
 
         for name in names:
             if "playstation" in name or "ps1" in name or "playstation1" in name:

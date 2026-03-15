@@ -187,6 +187,25 @@ def test_import_external_game_maps_platform():
 
     assert result.platform == Platform.SWITCH
 
+def test_import_external_game_maps_platform_pc():
+    class PcRawgClient:
+        def get_game_by_id(self, game_id: str):
+            return {
+                "id": 3,
+                "name": "PC Test",
+                "released": "2024-01-01",
+                "platforms": [{"platform": {"name": "PC"}}],
+                "rating": 4.0,
+                "background_image": "http://image.url"
+            }
+
+    fake_repo = FakeGameRepository()
+    service = ExternalGameService(repository=fake_repo, rawg_client=PcRawgClient())
+
+    result = service.import_game_by_id(3)
+
+    assert result.platform == Platform.PC
+
 def test_backfill_rawg_slugs():
     class BackfillRawgClient:
         def search_games_by_name(
