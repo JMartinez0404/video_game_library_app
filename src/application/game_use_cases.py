@@ -46,9 +46,17 @@ class GameService:
         game_id: int,
         personal_rating: float | None = None,
         platform: Platform | None = None,
+        notes: str | None = None,
+        tags: list[str] | None = None,
+        progress: float | None = None,
+        favorite: bool | None = None,
     ) -> VideoGame:
         return self.repository.update(
             game_id=game_id,
             personal_rating=personal_rating,
             platform=platform,
+            notes=notes,
+            tags=tags,
+            progress=progress,
+            favorite=favorite,
         )

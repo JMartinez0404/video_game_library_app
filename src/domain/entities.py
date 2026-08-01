@@ -50,7 +50,27 @@ class VideoGame:
     release_date: str
     rawg_slug: Optional[str] = None
     rawg_platforms: list[str] = None
+    notes: Optional[str] = None
+    tags: list[str] = None
+    progress: Optional[float] = None
+    favorite: Optional[bool] = None
+    added_at: Optional[str] = None
+    last_updated: Optional[str] = None
 
     def __post_init__(self) -> None:
         if self.rawg_platforms is None:
             self.rawg_platforms = []
+        if self.tags is None:
+            self.tags = []
+        if self.favorite is None:
+            self.favorite = False
+
+
+@dataclass
+class ActivityEntry:
+    id: Optional[int]
+    game_id: Optional[int]
+    title: str
+    type: str
+    details: Optional[str]
+    timestamp: str

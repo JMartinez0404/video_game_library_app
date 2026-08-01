@@ -7,25 +7,16 @@ import {
   removeGame,
   searchExternalGames,
   updateGame,
+  getActivity,
+  getImportHistory,
+  type ActivityItem,
+  type ImportHistoryItem,
 } from "@/lib/api/games"
 import { useState, useEffect, useMemo } from "react"
 import { VideoGame } from "@/types/videoGame"
 import Image from "next/image"
 import GameCard from "./GameCard"
 import SearchBar from "@/components/SearchBar"
-import {
-  getMetaMap,
-  updateGameMeta,
-  markGamesAsSeen,
-  getActivityLog,
-  logActivity,
-  recordImport,
-  getImportHistory,
-  removeImportHistory,
-  type ActivityItem,
-  type GameMeta,
-  type ImportHistoryItem,
-} from "@/lib/localLibrary"
 
 const PLATFORM_OPTIONS = [
   { value: "PC", label: "PC" },
@@ -105,7 +96,6 @@ export default function Home() {
   const [bulkPlatform, setBulkPlatform] = useState("")
   const [bulkRating, setBulkRating] = useState("")
 
-  const [metaMap, setMetaMap] = useState<Record<string, GameMeta>>({})
   const [activityLog, setActivityLog] = useState<ActivityItem[]>([])
   const [importHistory, setImportHistory] = useState<ImportHistoryItem[]>([])
   const [detailGameId, setDetailGameId] = useState<number | null>(null)
@@ -116,10 +106,16 @@ export default function Home() {
 
   useEffect(() => {
     loadLibrary()
-    setMetaMap(getMetaMap())
-    setActivityLog(getActivityLog(8))
-    setImportHistory(getImportHistory())
   }, [])
+
+  async function refreshActivity() {
+    const [activity, imports] = await Promise.all([
+      getActivity(12),
+      getImportHistory(10),
+    ])
+    setActivityLog(activity)
+    setImportHistory(imports)
+  }
 
   async function loadLibrary() {
     setIsLoadingLibrary(true)
@@ -129,11 +125,8 @@ export default function Home() {
       const data = await getLibrary()
       setLibraryGames(data)
       setView("library")
-      const updatedMeta = markGamesAsSeen(data)
-      setMetaMap(updatedMeta)
-      setActivityLog(getActivityLog(8))
-      setImportHistory(getImportHistory())
       setSelectedIds((prev) => prev.filter((id) => data.some((game) => game.id === id)))
+      await refreshActivity()
     } catch (error) {
       setLibraryError(
         error instanceof Error ? error.message : "Failed to load library.",
@@ -170,15 +163,7 @@ export default function Home() {
 
   async function handleImport(id: number) {
     try {
-      const imported = await importGame(id)
-      recordImport(imported)
-      logActivity({
-        gameId: imported.id,
-        title: imported.title,
-        type: "import",
-      })
-      setActivityLog(getActivityLog(8))
-      setImportHistory(getImportHistory())
+      await importGame(id)
       await loadLibrary()
     } catch (error) {
       setLibraryError(
@@ -188,16 +173,17 @@ export default function Home() {
   }
 
   async function handleRemove(title: string) {
-    const removed = await removeGame(title)
-    logActivity({
-      gameId: removed.id,
-      title: removed.title,
-      type: "remove",
-    })
-    removeImportHistory(removed.id)
-    setActivityLog(getActivityLog(8))
-    setImportHistory(getImportHistory())
+    await removeGame(title)
     await loadLibrary()
+  }
+
+  async function applyUpdate(id: number, update: Parameters<typeof updateGame>[1]) {
+    const updated = await updateGame(id, update)
+    setLibraryGames((prev) =>
+      prev.map((game) => (game.id === id ? updated : game)),
+    )
+    await refreshActivity()
+    return updated
   }
 
   async function handleUpdate(
@@ -205,22 +191,7 @@ export default function Home() {
     update: { personal_rating?: number | null; platform?: string | null },
   ) {
     try {
-      const updated = await updateGame(id, update)
-      setLibraryGames((prev) =>
-        prev.map((game) => (game.id === id ? updated : game)),
-      )
-      const details: string[] = []
-      if (update.platform) details.push(`Platform: ${update.platform}`)
-      if (update.personal_rating !== undefined && update.personal_rating !== null) {
-        details.push(`Personal rating: ${update.personal_rating}`)
-      }
-      logActivity({
-        gameId: updated.id,
-        title: updated.title,
-        type: "update",
-        details: details.join(", "),
-      })
-      setActivityLog(getActivityLog(8))
+      await applyUpdate(id, update)
     } catch (error) {
       setLibraryError(
         error instanceof Error ? error.message : "Update failed.",
@@ -252,14 +223,6 @@ export default function Home() {
           }),
         ),
       )
-      logActivity({
-        title: `${selectedIds.length} games`,
-        type: "bulk_update",
-        details: `Platform: ${nextPlatform || "no change"}, Rating: ${
-          nextRating === null ? "no change" : nextRating
-        }`,
-      })
-      setActivityLog(getActivityLog(8))
       setSelectedIds([])
       setBulkPlatform("")
       setBulkRating("")
@@ -272,11 +235,9 @@ export default function Home() {
   }
 
   async function handleUndoImport(entry: ImportHistoryItem) {
-    const game = libraryGames.find((item) => item.id === entry.gameId)
+    const game = libraryGames.find((item) => item.id === entry.game_id)
     if (!game) return
     await handleRemove(game.title)
-    removeImportHistory(entry.gameId)
-    setImportHistory(getImportHistory())
   }
 
   function handleToggleSelect(id: number, selected: boolean) {
@@ -288,17 +249,14 @@ export default function Home() {
     })
   }
 
-  function handleToggleFavorite(id: number, next: boolean) {
-    const game = libraryGames.find((item) => item.id === id)
-    if (!game) return
-    const updated = updateGameMeta(id, { favorite: next })
-    setMetaMap(updated)
-    logActivity({
-      gameId: id,
-      title: game.title,
-      type: next ? "favorite" : "unfavorite",
-    })
-    setActivityLog(getActivityLog(8))
+  async function handleToggleFavorite(id: number, next: boolean) {
+    try {
+      await applyUpdate(id, { favorite: next })
+    } catch (error) {
+      setLibraryError(
+        error instanceof Error ? error.message : "Favorite update failed.",
+      )
+    }
   }
 
   function handleOpenDetails(id: number) {
@@ -498,23 +456,19 @@ export default function Home() {
     }
 
     if (favoritesOnly) {
-      result = result.filter((game) => metaMap[String(game.id)]?.favorite)
+      result = result.filter((game) => game.favorite)
     }
 
     if (tagFilter.trim()) {
       const needle = tagFilter.trim().toLowerCase()
       result = result.filter((game) => {
-        const tags = metaMap[String(game.id)]?.tags ?? []
+        const tags = game.tags ?? []
         return tags.some((tag) => tag.toLowerCase().includes(needle))
       })
     }
 
     if (sortPreset === "recent") {
-      result.sort((a, b) => {
-        const aDate = metaMap[String(a.id)]?.addedAt ?? ""
-        const bDate = metaMap[String(b.id)]?.addedAt ?? ""
-        return bDate.localeCompare(aDate)
-      })
+      result.sort((a, b) => (b.added_at ?? "").localeCompare(a.added_at ?? ""))
     } else if (sortPreset === "highest") {
       result.sort((a, b) => (b.communal_rating ?? 0) - (a.communal_rating ?? 0))
     } else if (sortPreset === "personal") {
@@ -547,7 +501,6 @@ export default function Home() {
     favoritesOnly,
     tagFilter,
     sortPreset,
-    metaMap,
   ])
 
   const stats = useMemo(() => {
@@ -594,73 +547,46 @@ export default function Home() {
       setDetailProgress(0)
       return
     }
-    const meta = metaMap[String(detailGame.id)] ?? {}
-    setDetailNotes(meta.notes ?? "")
-    setDetailTags((meta.tags ?? []).join(", "))
-    setDetailProgress(meta.progress ?? 0)
-  }, [detailGame, metaMap])
+    setDetailNotes(detailGame.notes ?? "")
+    setDetailTags((detailGame.tags ?? []).join(", "))
+    setDetailProgress(detailGame.progress ?? 0)
+  }, [detailGame])
 
   useEffect(() => {
     if (!detailGame) return
-    const handler = setTimeout(() => {
-      const current = metaMap[String(detailGame.id)] ?? {}
-      if (detailNotes !== (current.notes ?? "")) {
-        const updated = updateGameMeta(detailGame.id, { notes: detailNotes })
-        setMetaMap(updated)
-        logActivity({
-          gameId: detailGame.id,
-          title: detailGame.title,
-          type: "notes",
-        })
-        setActivityLog(getActivityLog(8))
+    const handler = setTimeout(async () => {
+      if (detailNotes !== (detailGame.notes ?? "")) {
+        await applyUpdate(detailGame.id, { notes: detailNotes })
       }
     }, 600)
     return () => clearTimeout(handler)
-  }, [detailNotes, detailGame, metaMap])
+  }, [detailNotes, detailGame])
 
   useEffect(() => {
     if (!detailGame) return
-    const handler = setTimeout(() => {
+    const handler = setTimeout(async () => {
       const tags = detailTags
         .split(",")
         .map((tag) => tag.trim())
         .filter(Boolean)
-      const current = metaMap[String(detailGame.id)]?.tags ?? []
+      const current = detailGame.tags ?? []
       if (tags.join("|") !== current.join("|")) {
-        const updated = updateGameMeta(detailGame.id, { tags })
-        setMetaMap(updated)
-        logActivity({
-          gameId: detailGame.id,
-          title: detailGame.title,
-          type: "tags",
-          details: tags.join(", "),
-        })
-        setActivityLog(getActivityLog(8))
+        await applyUpdate(detailGame.id, { tags })
       }
     }, 600)
     return () => clearTimeout(handler)
-  }, [detailTags, detailGame, metaMap])
+  }, [detailTags, detailGame])
 
   useEffect(() => {
     if (!detailGame) return
-    const handler = setTimeout(() => {
-      const current = metaMap[String(detailGame.id)]?.progress ?? 0
+    const handler = setTimeout(async () => {
+      const current = detailGame.progress ?? 0
       if (detailProgress !== current) {
-        const updated = updateGameMeta(detailGame.id, {
-          progress: detailProgress,
-        })
-        setMetaMap(updated)
-        logActivity({
-          gameId: detailGame.id,
-          title: detailGame.title,
-          type: "progress",
-          details: `${detailProgress}%`,
-        })
-        setActivityLog(getActivityLog(8))
+        await applyUpdate(detailGame.id, { progress: detailProgress })
       }
     }, 400)
     return () => clearTimeout(handler)
-  }, [detailProgress, detailGame, metaMap])
+  }, [detailProgress, detailGame])
 
   function updateFilters(patch: Partial<typeof filters>) {
     setFilters((prev) => ({ ...prev, ...patch }))
@@ -685,6 +611,14 @@ export default function Home() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
       <main className="flex min-h-screen w-full max-w-6xl flex-col items-center justify-between bg-white px-6 py-16 dark:bg-black sm:items-start sm:px-10 sm:py-24 lg:px-16 lg:py-32">
+        <Image
+          className="dark:invert"
+          src="/next.svg"
+          alt="Next.js logo"
+          width={100}
+          height={20}
+          priority
+        />
         <div className="flex w-full flex-col items-center gap-6 text-center sm:items-start sm:text-left">
           <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50 sm:max-w-md">
             {project}
@@ -923,11 +857,7 @@ export default function Home() {
                   </p>
                   <p>Total games: {stats.total}</p>
                   <p>
-                    Favorites: {
-                      filteredLibraryGames.filter(
-                        (game) => metaMap[String(game.id)]?.favorite,
-                      ).length
-                    }
+                    Favorites: {filteredLibraryGames.filter((game) => game.favorite).length}
                   </p>
                 </div>
                 <div className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-800">
@@ -957,16 +887,18 @@ export default function Home() {
                   <p className="font-semibold text-zinc-700 dark:text-zinc-200">
                     Activity Feed
                   </p>
-                  {activityLog.length === 0 ? (
-                    <p className="text-zinc-500">No recent activity yet.</p>
-                  ) : (
-                    activityLog.map((item) => (
-                      <p key={item.id}>
-                        {formatTimestamp(item.timestamp)} — {item.type} {item.title}
-                        {item.details ? ` (${item.details})` : ""}
-                      </p>
-                    ))
-                  )}
+                  <div className="mt-2 h-40 overflow-y-auto pr-2">
+                    {activityLog.length === 0 ? (
+                      <p className="text-zinc-500">No recent activity yet.</p>
+                    ) : (
+                      activityLog.map((item) => (
+                        <p key={item.id}>
+                          {formatTimestamp(item.timestamp)} — {item.type} {item.title}
+                          {item.details ? ` (${item.details})` : ""}
+                        </p>
+                      ))
+                    )}
+                  </div>
                 </div>
                 <div className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-800">
                   <p className="font-semibold text-zinc-700 dark:text-zinc-200">
@@ -976,7 +908,7 @@ export default function Home() {
                     <p className="text-zinc-500">No imports recorded.</p>
                   ) : (
                     importHistory.map((entry) => (
-                      <div key={entry.gameId} className="flex items-center gap-2">
+                      <div key={entry.game_id} className="flex items-center gap-2">
                         <span>
                           {entry.title} — {formatTimestamp(entry.timestamp)}
                         </span>
@@ -1020,37 +952,34 @@ export default function Home() {
                 : "flex w-full flex-col gap-4"
             }
           >
-            {displayedGames.map((game) => {
-              const meta = metaMap[String(game.id)] ?? {}
-              return (
-                <GameCard
-                  key={game.id}
-                  id={game.id}
-                  title={game.title}
-                  rating={game.communal_rating}
-                  personalRating={game.personal_rating}
-                  playState={game.play_state}
-                  platform={game.platform}
-                  imageUrl={game.image_url}
-                  releaseDate={game.release_date}
-                  rawgUrl={buildRawgUrl(game)}
-                  rawgPlatforms={game.rawg_platforms}
-                  tags={meta.tags}
-                  notesPreview={meta.notes ? meta.notes.slice(0, 120) : null}
-                  favorite={Boolean(meta.favorite)}
-                  showSelect={view === "library"}
-                  isSelected={selectedIds.includes(game.id)}
-                  onToggleSelect={handleToggleSelect}
-                  onToggleFavorite={view === "library" ? handleToggleFavorite : undefined}
-                  onOpenDetails={view === "library" ? handleOpenDetails : undefined}
-                  onResolveRawgUrl={() => resolveRawgUrl(game)}
-                  onImport={view === "search" ? handleImport : undefined}
-                  onRemove={view === "library" ? handleRemove : undefined}
-                  onUpdate={view === "library" ? handleUpdate : undefined}
-                  layout={viewMode}
-                />
-              )
-            })}
+            {displayedGames.map((game) => (
+              <GameCard
+                key={game.id}
+                id={game.id}
+                title={game.title}
+                rating={game.communal_rating}
+                personalRating={game.personal_rating}
+                playState={game.play_state}
+                platform={game.platform}
+                imageUrl={game.image_url}
+                releaseDate={game.release_date}
+                rawgUrl={buildRawgUrl(game)}
+                rawgPlatforms={game.rawg_platforms}
+                tags={game.tags ?? []}
+                notesPreview={game.notes ? game.notes.slice(0, 120) : null}
+                favorite={Boolean(game.favorite)}
+                showSelect={view === "library"}
+                isSelected={selectedIds.includes(game.id)}
+                onToggleSelect={handleToggleSelect}
+                onToggleFavorite={view === "library" ? handleToggleFavorite : undefined}
+                onOpenDetails={view === "library" ? handleOpenDetails : undefined}
+                onResolveRawgUrl={() => resolveRawgUrl(game)}
+                onImport={view === "search" ? handleImport : undefined}
+                onRemove={view === "library" ? handleRemove : undefined}
+                onUpdate={view === "library" ? handleUpdate : undefined}
+                layout={viewMode}
+              />
+            ))}
           </div>
 
           {view === "search" && searchResults.length < searchTotal && (
@@ -1086,7 +1015,20 @@ export default function Home() {
                 </button>
               </div>
 
-              <div className="mt-4 grid gap-4 text-sm text-zinc-600 dark:text-zinc-300 md:grid-cols-2">
+              <div className="mt-4 grid gap-4 text-sm text-zinc-600 dark:text-zinc-300 md:grid-cols-[140px_1fr]">
+                <div className="h-40 w-28 overflow-hidden rounded-xl bg-zinc-200 dark:bg-zinc-800">
+                  {detailGame.image_url ? (
+                    <img
+                      src={detailGame.image_url}
+                      alt={`${detailGame.title} cover`}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center text-xs text-zinc-500">
+                      No Image
+                    </div>
+                  )}
+                </div>
                 <div className="space-y-2">
                   <p>Platform: {detailGame.platform ?? "Unknown"}</p>
                   <p>Play State: {detailGame.play_state ?? "Unknown"}</p>
@@ -1095,16 +1037,23 @@ export default function Home() {
                   </p>
                   <p>Personal Rating: {detailGame.personal_rating ?? "N/A"}</p>
                   <p>Release Date: {detailGame.release_date ?? "Unknown"}</p>
+                  <p>Added: {detailGame.added_at ? formatTimestamp(detailGame.added_at) : "Unknown"}</p>
+                  <p>
+                    Last Updated: {detailGame.last_updated ? formatTimestamp(detailGame.last_updated) : "Unknown"}
+                  </p>
                 </div>
-                <div className="space-y-2">
-                  <label className="flex flex-col gap-1 text-xs">
-                    Notes (autosave)
-                    <textarea
-                      value={detailNotes}
-                      onChange={(event) => setDetailNotes(event.target.value)}
-                      className="min-h-[80px] rounded-md border border-zinc-200 bg-white px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-900"
-                    />
-                  </label>
+              </div>
+
+              <div className="mt-4 grid gap-4 text-sm text-zinc-600 dark:text-zinc-300 md:grid-cols-2">
+                <label className="flex flex-col gap-1 text-xs">
+                  Notes (autosave)
+                  <textarea
+                    value={detailNotes}
+                    onChange={(event) => setDetailNotes(event.target.value)}
+                    className="min-h-[80px] rounded-md border border-zinc-200 bg-white px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+                  />
+                </label>
+                <div className="space-y-3">
                   <label className="flex flex-col gap-1 text-xs">
                     Tags (comma separated)
                     <input

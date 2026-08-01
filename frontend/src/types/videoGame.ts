@@ -9,4 +9,10 @@ export type VideoGame = {
   release_date?: string | null
   rawg_slug?: string | null
   rawg_platforms?: string[] | null
+  notes?: string | null
+  tags?: string[] | null
+  progress?: number | null
+  favorite?: boolean | null
+  added_at?: string | null
+  last_updated?: string | null
 }

@@ -160,7 +160,16 @@ def test_external_backfill_route(monkeypatch):
     assert response.json()["updated"] == 2
 
 def test_update_game_route(monkeypatch):
-    def fake_update(self, game_id: int, personal_rating=None, platform=None):
+    def fake_update(
+        self,
+        game_id: int,
+        personal_rating=None,
+        platform=None,
+        notes=None,
+        tags=None,
+        progress=None,
+        favorite=None,
+    ):
         return VideoGame(
             id=game_id,
             title="Updated Game",

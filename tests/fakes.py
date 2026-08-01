@@ -59,6 +59,10 @@ class FakeGameRepository(GameRepository):
         game_id: int,
         personal_rating: float | None = None,
         platform: Platform | None = None,
+        notes: str | None = None,
+        tags: list[str] | None = None,
+        progress: float | None = None,
+        favorite: bool | None = None,
     ) -> VideoGame:
         for video_game in self.video_games:
             if video_game.id == game_id:
@@ -66,6 +70,14 @@ class FakeGameRepository(GameRepository):
                     video_game.personal_rating = personal_rating
                 if platform is not None:
                     video_game.platform = platform
+                if notes is not None:
+                    video_game.notes = notes
+                if tags is not None:
+                    video_game.tags = tags
+                if progress is not None:
+                    video_game.progress = progress
+                if favorite is not None:
+                    video_game.favorite = favorite
                 return video_game
         raise ValueError("Game not found")
 

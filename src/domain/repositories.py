@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List, Optional
-from .entities import VideoGame, Platform, PlayState
+from .entities import VideoGame, Platform, PlayState, ActivityEntry
 
 class GameRepository(ABC):
 
@@ -41,5 +41,24 @@ class GameRepository(ABC):
         game_id: int,
         personal_rating: float | None = None,
         platform: Platform | None = None,
+        notes: str | None = None,
+        tags: list[str] | None = None,
+        progress: float | None = None,
+        favorite: bool | None = None,
     ) -> VideoGame:
+        pass
+
+
+class ActivityRepository(ABC):
+
+    @abstractmethod
+    def add(self, entry: ActivityEntry) -> ActivityEntry:
+        pass
+
+    @abstractmethod
+    def list(self, limit: int = 10) -> list[ActivityEntry]:
+        pass
+
+    @abstractmethod
+    def list_imports(self, limit: int = 10) -> list[ActivityEntry]:
         pass

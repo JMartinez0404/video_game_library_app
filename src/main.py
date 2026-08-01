@@ -48,4 +48,30 @@ def ensure_rawg_platforms_column() -> None:
 
 ensure_rawg_platforms_column()
 
+def ensure_metadata_columns() -> None:
+    inspector = inspect(engine)
+    if "video_games" not in inspector.get_table_names():
+        return
+    columns = {column["name"] for column in inspector.get_columns("video_games")}
+    statements = []
+    if "notes" not in columns:
+        statements.append("ALTER TABLE video_games ADD COLUMN notes VARCHAR")
+    if "tags" not in columns:
+        statements.append("ALTER TABLE video_games ADD COLUMN tags VARCHAR")
+    if "progress" not in columns:
+        statements.append("ALTER TABLE video_games ADD COLUMN progress FLOAT")
+    if "favorite" not in columns:
+        statements.append("ALTER TABLE video_games ADD COLUMN favorite BOOLEAN")
+    if "added_at" not in columns:
+        statements.append("ALTER TABLE video_games ADD COLUMN added_at VARCHAR")
+    if "last_updated" not in columns:
+        statements.append("ALTER TABLE video_games ADD COLUMN last_updated VARCHAR")
+    if not statements:
+        return
+    with engine.begin() as connection:
+        for statement in statements:
+            connection.execute(text(statement))
+
+ensure_metadata_columns()
+
 app.include_router(router)

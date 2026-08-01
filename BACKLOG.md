@@ -8,6 +8,9 @@ Guidelines:
 - Keep items short and action-oriented.
 
 Backlog:
+- ~~Persist notes/tags/progress/favorites/activity/import history to the backend.~~
+- ~~Add fixed-height activity feed with scroll.~~
+- ~~Show cover image in the details drawer.~~
 - ~~Ensure platform selector keeps current platform even if not listed by RAWG.~~
 - ~~Auto-run RAWG backfill when library entries are missing slugs/platforms.~~
 - ~~Expand platform coverage across backend mappings and frontend selectors.~~

@@ -14,6 +14,10 @@ class VideoGameCreate(BaseModel):
     release_date: str
     rawg_slug: Optional[str] = None
     rawg_platforms: list[str] | None = None
+    notes: Optional[str] = None
+    tags: list[str] | None = None
+    progress: Optional[float] = None
+    favorite: Optional[bool] = None
 
     #TODO: Check if this is okay
     @field_validator('image_url', mode='after')
@@ -36,6 +40,12 @@ class VideoGameResponse(BaseModel):
     release_date: str
     rawg_slug: Optional[str] = None
     rawg_platforms: list[str] | None = None
+    notes: Optional[str] = None
+    tags: list[str] | None = None
+    progress: Optional[float] = None
+    favorite: Optional[bool] = None
+    added_at: Optional[str] = None
+    last_updated: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -54,6 +64,25 @@ class ExternalGameResponse(BaseModel):
 class VideoGameUpdate(BaseModel):
     personal_rating: Optional[float] = None
     platform: Optional[Platform] = None
+    notes: Optional[str] = None
+    tags: list[str] | None = None
+    progress: Optional[float] = None
+    favorite: Optional[bool] = None
+
+
+class ActivityResponse(BaseModel):
+    id: int
+    game_id: Optional[int] = None
+    title: str
+    type: str
+    details: Optional[str] = None
+    timestamp: str
+
+
+class ImportHistoryResponse(BaseModel):
+    game_id: int
+    title: str
+    timestamp: str
 
 
 class ExternalGameSearchResponse(BaseModel):
